@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lib-datadog
+description: Annotations and ENVs for datadog
+type: library
+version: 0.1.0
+appVersion: "1.0.0"
