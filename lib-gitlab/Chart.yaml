@@ -1,6 +1,6 @@
 apiVersion: v2
 name: lib-gitlab
-description: Annotations and ENVs for GitLab
+description: Annotations for GitLab
 type: library
 version: 0.1.0
 appVersion: "1.0.0"
