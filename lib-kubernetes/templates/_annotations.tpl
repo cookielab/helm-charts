@@ -1,5 +1,5 @@
 {{- define "cookielab.kubernetes.annotations" -}}
-{{- if .defaultContainer -}}
+{{- if .defaultContainer }}
 kubectl.kubernetes.io/default-container: {{ .defaultContainer | quote }}
-{{- end -}}
+{{- end }}
 {{- end -}}

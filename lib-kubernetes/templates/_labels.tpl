@@ -1,20 +1,20 @@
 {{- define "cookielab.kubernetes.labels" -}}
-{{- if .instance -}}
+{{- if .instance }}
 app.kubernetes.io/instance: {{ .instance | quote }}
-{{- end -}}
-{{- if .partOf -}}
+{{- end }}
+{{- if .partOf }}
 app.kubernetes.io/part-of: {{ .partOf | quote }}
-{{- end -}}
-{{- if .version -}}
+{{- end }}
+{{- if .version }}
 app.kubernetes.io/version: {{ .version | quote }}
-{{- end -}}
+{{- end }}
 {{- end -}}
 
 {{- define "cookielab.kubernetes.labels.selector" -}}
-{{- if .component -}}
+{{- if .component }}
 app.kubernetes.io/component: {{ .component | quote }}
-{{- end -}}
-{{- if .name -}}
+{{- end }}
+{{- if .name }}
 app.kubernetes.io/name: {{ .name | quote }}
-{{- end -}}
+{{- end }}
 {{- end -}}
