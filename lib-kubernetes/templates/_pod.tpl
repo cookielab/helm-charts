@@ -1,20 +1,11 @@
 {{- define "cookielab.kubernetes.pod.topology-spread" -}}
+{{- if .metadata -}}
 topologySpreadConstraints:
 - maxSkew: {{ .maxSkew | default 1 }}
   topologyKey: topology.kubernetes.io/zone
   whenUnsatisfiable: DoNotSchedule
   labelSelector:
     matchLabels:
-      {{- if .component -}}
-      app.kubernetes.io/component: {{ .component | quote }}
-      {{- end -}}
-      {{- if .instance -}}
-      app.kubernetes.io/instance: {{ .instance | quote }}
-      {{- end -}}
-      {{- if .name -}}
-      app.kubernetes.io/name: {{ .name | quote }}
-      {{- end -}}
-      {{- if .partOf -}}
-      app.kubernetes.io/part-of: {{ .version | quote }}
-      {{- end -}}
+      {{ include "cookielab.kubernetes.labels.selector" .metadata | indent 6 | trim }}
+{{- end -}}
 {{- end -}}
