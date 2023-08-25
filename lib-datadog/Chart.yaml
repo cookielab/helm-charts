@@ -3,4 +3,3 @@ name: lib-datadog
 description: Annotations, Labels and ENVs for DataDog
 type: library
 version: 0.1.0
-appVersion: "1.0.0"
