@@ -14,7 +14,9 @@ spec:
   targetGroupARN: {{ $component.targetGroup.arn }}
   serviceRef:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
-    port: {{ index $component.ports 0 }}
+  {{- with index $component.ports 0 }}
+    port: {{ .port }}
+  {{- end }}
   {{- if $component.targetGroup.securityGroupIds }}
   networking:
     ingress:
