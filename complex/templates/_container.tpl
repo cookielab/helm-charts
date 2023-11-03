@@ -8,9 +8,12 @@ command:
 {{- end }}
 {{- if .specific.ports }}
 ports:
-  {{- range $port := .specific.ports }}
-  - containerPort: {{ $port }}
-  {{- end -}}
+{{- range $port := .specific.ports }}
+  - containerPort: {{ $port.port }}
+{{- if $port.name }}
+    name: {{ $port.name }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{ include "cookielab.kubernetes.container.envs.values" (dict "specific" (dig "specific" "envs" "values" (dict) .) "global" .global.envs.values) }}
 {{ include "cookielab.kubernetes.container.envs.from" (dict "specific" (dig "specific" "envs" "from" (dict) .) "global" .global.envs.from) }}
