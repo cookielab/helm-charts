@@ -1,0 +1,44 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if eq $component.type "cronjob" -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
+spec:
+  schedule: {{ $component.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 8 | trim }}
+        {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 8 | trim }}
+      annotations:
+        {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 8 | trim }}
+        {{- if $.Values.global.metadata.gitlab }}
+        {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
+        {{- end }}
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 12 | trim }}
+            {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 12 | trim }}
+          annotations:
+            {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 12 | trim }}
+            {{- if $.Values.global.metadata.gitlab }}
+            {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 12 | trim }}
+            {{- end }}
+        spec:
+          {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels  ) | indent 10 | trim }}
+{{ end -}}
+{{- end -}}

@@ -1,0 +1,30 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if eq $component.type "http" -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+spec:
+  targetType: ip
+  targetGroupARN: {{ $component.targetGroup.arn }}
+  serviceRef:
+    name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+    port: {{ index $component.ports 0 }}
+  {{- if $component.targetGroup.securityGroupIds }}
+  networking:
+    ingress:
+      - ports:
+          - protocol: TCP
+        from:
+          {{- range $securityGroupIds := $component.targetGroup.securityGroupIds }}
+          - securityGroup:
+              groupID: {{ $securityGroupIds }}
+          {{- end }}
+  {{- end }}
+{{ end -}}
+{{- end -}}
