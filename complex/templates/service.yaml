@@ -13,8 +13,9 @@ spec:
   type: {{ dig "service" "type" $.Values.global.service.type $component }}
   ports:
     {{- range $port := $component.ports }}
-    - port: {{ $port }}
-      targetPort: {{ $port }}
+    - name: {{ $port.name }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.port }}
       protocol: TCP
     {{- end }}
   selector:
