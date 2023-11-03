@@ -1,0 +1,22 @@
+global:
+  metadata: {}
+  container:
+    image:
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256M
+        ephemeralStorage: 1Gi
+      limits:
+        cpu: 200m
+        memory: 256M
+        ephemeralStorage: 1Gi
+    envs:
+      values: {}
+      from:
+        secrets: []
+        configMaps: []
+  nodeSelector: {}
+  service:
+    type: ClusterIP

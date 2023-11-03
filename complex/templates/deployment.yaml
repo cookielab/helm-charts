@@ -1,0 +1,38 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if and (ne $component.type "cronjob") (ne $component.type "pre-job") -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+  annotations:
+    {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
+spec:
+  replicas: {{ $component.replicas }}
+  progressDeadlineSeconds: {{ default 300 $component.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 100%
+  selector:
+    matchLabels:
+      {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 6 | trim }}
+  template:
+    metadata:
+      labels:
+        {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 8 | trim }}
+        {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 8 | trim }}
+      annotations:
+        {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 8 | trim }}
+        {{- if $.Values.global.metadata.gitlab }}
+        {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
+        {{- end }}
+    spec:
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels  ) | indent 6 | trim }}
+{{ end -}}
+{{- end -}}
