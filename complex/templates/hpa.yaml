@@ -1,0 +1,34 @@
+{{- range $componentName, $component := $.Values.components -}}
+{{- if not (empty $component.hpa) -}}
+{{- if and $component.hpa.enabled (or (ne $component.type "cronjob") (ne $component.type "pre-job")) -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  minReplicas: {{ $component.replicas }}
+  maxReplicas: {{ $component.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $component.hpa.cpuThresholdPercent | default 75 }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $component.hpa.memThresholdPercent | default 75 }}
+{{- end }}
+{{- end }}
+{{- end }}
