@@ -2,13 +2,13 @@ apiVersion: v2
 name: complex
 description: For deploying complex (one-container or more containers), consumers and cronjobs application
 type: application
-version: 0.9.0
+version: 0.10.0
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 
 dependencies:
-- name: lib-gitlab
-  version: "0.1.0"
-  repository: "https://helm.cookielab.dev"
-- name: lib-kubernetes
-  version: "0.1.0"
-  repository: "https://helm.cookielab.dev"
+  - name: lib-gitlab
+    version: "0.1.0"
+    repository: "https://helm.cookielab.dev"
+  - name: lib-kubernetes
+    version: "0.1.0"
+    repository: "https://helm.cookielab.dev"

@@ -26,9 +26,7 @@
         "grpc": {
           "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "port": {
               "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
@@ -44,9 +42,7 @@
         "httpGet": {
           "description": "HTTPGet specifies the http request to perform.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
@@ -58,10 +54,7 @@
               "items": {
                 "description": "HTTPHeader describes a custom header to be used in HTTP probes",
                 "type": "object",
-                "required": [
-                  "name",
-                  "value"
-                ],
+                "required": ["name", "value"],
                 "properties": {
                   "name": {
                     "description": "The header field name",
@@ -106,9 +99,7 @@
         "tcpSocket": {
           "description": "TCPSocket specifies an action involving a TCP port.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Optional: Host name to connect to, defaults to the pod IP.",
@@ -142,9 +133,7 @@
       "items": {
         "description": "ContainerPort represents a network port in a single container.",
         "type": "object",
-        "required": [
-          "containerPort"
-        ],
+        "required": ["containerPort"],
         "properties": {
           "containerPort": {
             "description": "Number of port to expose on the pod's IP address. This must be a valid port number, 0 < x < 65536.",
@@ -170,10 +159,7 @@
           }
         }
       },
-      "x-kubernetes-list-map-keys": [
-        "containerPort",
-        "protocol"
-      ],
+      "x-kubernetes-list-map-keys": ["containerPort", "protocol"],
       "x-kubernetes-list-type": "map"
     },
     "readinessProbe": {
@@ -201,9 +187,7 @@
         "grpc": {
           "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "port": {
               "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
@@ -219,9 +203,7 @@
         "httpGet": {
           "description": "HTTPGet specifies the http request to perform.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
@@ -233,10 +215,7 @@
               "items": {
                 "description": "HTTPHeader describes a custom header to be used in HTTP probes",
                 "type": "object",
-                "required": [
-                  "name",
-                  "value"
-                ],
+                "required": ["name", "value"],
                 "properties": {
                   "name": {
                     "description": "The header field name",
@@ -281,9 +260,7 @@
         "tcpSocket": {
           "description": "TCPSocket specifies an action involving a TCP port.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Optional: Host name to connect to, defaults to the pod IP.",
@@ -332,9 +309,7 @@
         "grpc": {
           "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "port": {
               "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
@@ -350,9 +325,7 @@
         "httpGet": {
           "description": "HTTPGet specifies the http request to perform.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
@@ -364,10 +337,7 @@
               "items": {
                 "description": "HTTPHeader describes a custom header to be used in HTTP probes",
                 "type": "object",
-                "required": [
-                  "name",
-                  "value"
-                ],
+                "required": ["name", "value"],
                 "properties": {
                   "name": {
                     "description": "The header field name",
@@ -412,9 +382,7 @@
         "tcpSocket": {
           "description": "TCPSocket specifies an action involving a TCP port.",
           "type": "object",
-          "required": [
-            "port"
-          ],
+          "required": ["port"],
           "properties": {
             "host": {
               "description": "Optional: Host name to connect to, defaults to the pod IP.",
@@ -455,27 +423,16 @@
     "imagePullPolicy": {
       "description": "Image pull policy. One of Always, Never, IfNotPresent. Defaults to Always if :latest tag is specified, or IfNotPresent otherwise. Cannot be updated. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images\n\nPossible enum values:\n - `\"Always\"` means that kubelet always attempts to pull the latest image. Container will fail If the pull fails.\n - `\"IfNotPresent\"` means that kubelet pulls if the image isn't present on disk. Container will fail if the image isn't present and the pull fails.\n - `\"Never\"` means that kubelet never pulls an image, but only uses a local image. Container will fail if the image isn't present",
       "type": "string",
-      "enum": [
-        "Always",
-        "IfNotPresent",
-        "Never"
-      ]
+      "enum": ["Always", "IfNotPresent", "Never"]
     },
     "restartPolicy": {
       "description": "Restart policy for all containers within the pod. One of Always, OnFailure, Never. Default to Always. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy\n\nPossible enum values:\n - `\"Always\"`\n - `\"Never\"`\n - `\"OnFailure\"`",
       "type": "string",
-      "enum": [
-        "Always",
-        "Never",
-        "OnFailure"
-      ]
+      "enum": ["Always", "Never", "OnFailure"]
     },
     "resourceUnit": {
       "description": "Limits/Requests describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
-      "type": [
-        "string",
-        "number"
-      ],
+      "type": ["string", "number"],
       "anyOf": [
         {
           "type": "number",
@@ -500,11 +457,7 @@
           "$ref": "#/definitions/resourceUnit"
         }
       },
-      "required": [
-        "cpu",
-        "memory",
-        "ephemeralStorage"
-      ],
+      "required": ["cpu", "memory", "ephemeralStorage"],
       "additionalProperties": false
     },
     "resources": {
@@ -520,10 +473,7 @@
           "$ref": "#/definitions/resourceObject"
         }
       },
-      "required": [
-        "limits",
-        "requests"
-      ],
+      "required": ["limits", "requests"],
       "additionalProperties": false
     },
     "metadata": {
@@ -557,10 +507,7 @@
           "anyOf": [
             {},
             {
-              "required": [
-                "app",
-                "env"
-              ]
+              "required": ["app", "env"]
             }
           ]
         }
@@ -622,10 +569,7 @@
               "$ref": "#/definitions/imagePullPolicy"
             }
           },
-          "required": [
-            "repository",
-            "tag"
-          ],
+          "required": ["repository", "tag"],
           "additionalProperties": false
         },
         "command": {
@@ -657,9 +601,7 @@
           "$ref": "#/definitions/probes"
         }
       },
-      "required": [
-        "image"
-      ],
+      "required": ["image"],
       "additionalProperties": false
     },
     "pod": {
@@ -726,10 +668,7 @@
                   "$ref": "#/definitions/imagePullPolicy"
                 }
               },
-              "required": [
-                "repository",
-                "tag"
-              ],
+              "required": ["repository", "tag"],
               "additionalProperties": false
             },
             "resources": {
@@ -749,9 +688,7 @@
             }
           },
           "additionalProperties": false,
-          "required": [
-            "image"
-          ]
+          "required": ["image"]
         },
         "nodeSelector": {
           "$ref": "#/definitions/nodeSelector"
@@ -762,10 +699,7 @@
             "type": {
               "description": "type determines how the Service is exposed. Defaults to ClusterIP. Valid options are ExternalName, ClusterIP, NodePort, and LoadBalancer. \"ClusterIP\" allocates a cluster-internal IP address for load-balancing to endpoints. Endpoints are determined by the selector or if that is not specified, by manual construction of an Endpoints object or EndpointSlice objects. If clusterIP is \"None\", no virtual IP is allocated and the endpoints are published as a set of endpoints rather than a virtual IP. \"NodePort\" builds on ClusterIP and allocates a port on every node which routes to the same endpoints as the clusterIP. \"LoadBalancer\" builds on NodePort and creates an external load-balancer (if supported in the current cloud) which routes to the same endpoints as the clusterIP. \"ExternalName\" aliases this service to the specified externalName. Several other fields do not apply to ExternalName services. More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types\n\nPossible enum values:\n - `\"ClusterIP\"` means a service will only be accessible inside the cluster, via the cluster IP.\n - `\"ExternalName\"` means a service consists of only a reference to an external name that kubedns or equivalent will return as a CNAME record, with no exposing or proxying of any pods involved.\n - `\"LoadBalancer\"` means a service will be exposed via an external load balancer (if the cloud provider supports it), in addition to 'NodePort' type.\n - `\"NodePort\"` means a service will be exposed on one port of every node, in addition to 'ClusterIP' type.",
               "type": "string",
-              "enum": [
-                "ClusterIP",
-                "LoadBalancer"
-              ]
+              "enum": ["ClusterIP", "LoadBalancer"]
             }
           }
         }
@@ -779,13 +713,61 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "pre-job",
-              "http",
-              "http-internal",
-              "consumer",
-              "cronjob"
-            ]
+            "enum": ["pre-job", "http", "http-internal", "consumer", "cronjob"]
+          },
+          "hpa": {
+            "type": "object",
+            "description": "HPA is the configuration for HorizontalPodAutoscaler.",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "maxReplicas": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0
+              },
+              "cpuThresholdPercent": {
+                "type": "number",
+                "format": "int32",
+                "minimum": 0,
+                "maximum": 99
+              },
+              "memThresholdPercent": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "maximum": 99
+              }
+            },
+            "anyOf": [
+              {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": ["maxReplicas"]
+              },
+              {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  },
+                  "maxReplicas": {
+                    "type": "null"
+                  },
+                  "cpuThresholdPercent": {
+                    "type": "null"
+                  },
+                  "memThresholdPercent": {
+                    "type": "null"
+                  }
+                }
+              }
+            ],
+            "additionalProperties": false
           },
           "image": {
             "type": "object",
@@ -800,10 +782,7 @@
                 "$ref": "#/definitions/imagePullPolicy"
               }
             },
-            "required": [
-              "repository",
-              "tag"
-            ],
+            "required": ["repository", "tag"],
             "additionalProperties": false
           },
           "resources": {
@@ -865,10 +844,7 @@
               "type": {
                 "description": "type determines how the Service is exposed. Defaults to ClusterIP. Valid options are ExternalName, ClusterIP, NodePort, and LoadBalancer. \"ClusterIP\" allocates a cluster-internal IP address for load-balancing to endpoints. Endpoints are determined by the selector or if that is not specified, by manual construction of an Endpoints object or EndpointSlice objects. If clusterIP is \"None\", no virtual IP is allocated and the endpoints are published as a set of endpoints rather than a virtual IP. \"NodePort\" builds on ClusterIP and allocates a port on every node which routes to the same endpoints as the clusterIP. \"LoadBalancer\" builds on NodePort and creates an external load-balancer (if supported in the current cloud) which routes to the same endpoints as the clusterIP. \"ExternalName\" aliases this service to the specified externalName. Several other fields do not apply to ExternalName services. More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types\n\nPossible enum values:\n - `\"ClusterIP\"` means a service will only be accessible inside the cluster, via the cluster IP.\n - `\"ExternalName\"` means a service consists of only a reference to an external name that kubedns or equivalent will return as a CNAME record, with no exposing or proxying of any pods involved.\n - `\"LoadBalancer\"` means a service will be exposed via an external load balancer (if the cloud provider supports it), in addition to 'NodePort' type.\n - `\"NodePort\"` means a service will be exposed on one port of every node, in addition to 'ClusterIP' type.",
                 "type": "string",
-                "enum": [
-                  "ClusterIP",
-                  "LoadBalancer"
-                ]
+                "enum": ["ClusterIP", "LoadBalancer"]
               }
             }
           },
@@ -921,9 +897,7 @@
                 "type": "null"
               }
             },
-            "required": [
-              "command"
-            ]
+            "required": ["command"]
           },
           {
             "properties": {
@@ -934,11 +908,7 @@
                 "type": "null"
               }
             },
-            "required": [
-              "ports",
-              "targetGroup",
-              "probes"
-            ]
+            "required": ["ports", "targetGroup", "probes"]
           },
           {
             "properties": {
@@ -949,10 +919,7 @@
                 "type": "null"
               }
             },
-            "required": [
-              "ports",
-              "probes"
-            ]
+            "required": ["ports", "probes"]
           },
           {
             "properties": {
@@ -988,10 +955,7 @@
                 "type": "null"
               }
             },
-            "required": [
-              "schedule",
-              "command"
-            ]
+            "required": ["schedule", "command"]
           }
         ]
       }
