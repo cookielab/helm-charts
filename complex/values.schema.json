@@ -655,6 +655,17 @@
         "metadata": {
           "$ref": "#/definitions/metadata"
         },
+        "prometheus": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "port": {
+              "type": "string"
+            }
+          }
+        },
         "container": {
           "type": "object",
           "properties": {

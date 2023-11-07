@@ -32,7 +32,7 @@ spec:
         {{- if $.Values.global.metadata.gitlab }}
         {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
         {{- end }}
-        {{- include "cookielab.prometheus.annotations" $.Values.global.prometheus | nindent 8 }}
+        {{ include "cookielab.prometheus.annotations" $.Values.global.prometheus | indent 8 | trim }}
     spec:
       {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels  ) | indent 6 | trim }}
 {{ end -}}
