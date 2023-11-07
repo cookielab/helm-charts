@@ -646,6 +646,9 @@
     "lib-kubernetes": {
       "type": "object"
     },
+    "lib-prometheus": {
+      "type": "object"
+    },
     "global": {
       "type": "object",
       "properties": {
