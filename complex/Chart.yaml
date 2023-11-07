@@ -12,6 +12,3 @@ dependencies:
   - name: lib-kubernetes
     version: "0.1.0"
     repository: "https://helm.cookielab.dev"
-  - name: lib-prometheus
-    version: "0.1.0"
-    repository: "https://helm.cookielab.dev"
