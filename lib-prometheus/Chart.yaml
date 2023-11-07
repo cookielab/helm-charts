@@ -1,0 +1,5 @@
+apiVersion: v2
+name: lib-prometheus
+description: Annotations for Prometheus
+type: library
+version: 0.1.0
