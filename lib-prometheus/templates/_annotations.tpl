@@ -1,6 +1,6 @@
 {{- define "cookielab.prometheus.annotations" -}}
-{{- if .path }}
-prometheus.io/scrape: 'true'
+{{- if .scrape }}
+prometheus.io/scrape: {{ .scrape | quote }}
 prometheus.io/path: {{ .path | quote }}
 prometheus.io/port: {{ .port | quote }}
 {{- end }}
