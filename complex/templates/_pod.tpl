@@ -12,8 +12,8 @@ containers:
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
     {{ include "cookielab.kubernetes.container.lifecycle" . | indent 4 | trim }}
   {{- end }}
-{{- if .serviceAccountName }}
-serviceAccountName: {{ .serviceAccountName }}
+{{- if or .serviceAccountName $.global.serviceAccountName }}
+serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }}
 {{- end }}
 # securityContext:
 #   runAsNonRoot: true

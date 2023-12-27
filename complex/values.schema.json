@@ -669,6 +669,10 @@
             }
           }
         },
+        "serviceAccountName": {
+          "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+          "type": "string"
+        },
         "container": {
           "type": "object",
           "properties": {
