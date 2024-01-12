@@ -9,8 +9,14 @@ metadata:
   labels:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+    {{- if $.Values.global.metadata.labels }}
+    {{ $.Values.global.metadata.labels | toYaml | nindent 4 }}
+    {{- end }}
   annotations:
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
+    {{- if $.Values.global.metadata.annotations }}
+    {{ $.Values.global.metadata.annotations | toYaml | nindent 4 }}
+    {{- end }}
 spec:
   replicas: {{ $component.replicas }}
   progressDeadlineSeconds: {{ default 300 $component.progressDeadlineSeconds }}
@@ -27,12 +33,18 @@ spec:
       labels:
         {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 8 | trim }}
         {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 8 | trim }}
+        {{- if $.Values.global.metadata.labels }}
+        {{ $.Values.global.metadata.labels | toYaml | nindent 8 }}
+        {{- end }}
       annotations:
         {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 8 | trim }}
         {{- if $.Values.global.metadata.gitlab }}
         {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
         {{- end }}
         {{ include "cookielab.prometheus.annotations" $.Values.global.prometheus | indent 8 | trim }}
+        {{- if $.Values.global.metadata.annotations }}
+        {{ $.Values.global.metadata.annotations | toYaml | nindent 8 }}
+        {{- end }}
     spec:
       {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels  ) | indent 6 | trim }}
 {{ end -}}
