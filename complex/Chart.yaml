@@ -2,7 +2,7 @@ apiVersion: v2
 name: complex
 description: For deploying complex (one-container or more containers), consumers and cronjobs application
 type: application
-version: 0.13.1
+version: 0.14.0
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 
 dependencies:

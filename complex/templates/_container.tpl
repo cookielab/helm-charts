@@ -15,6 +15,10 @@ ports:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if .specific.securityContext }}
+securityContext:
+{{ toYaml .specific.securityContext | indent 2 }}
+{{- end }}
 {{ include "cookielab.kubernetes.container.envs.values" (dict "specific" (dig "specific" "envs" "values" (dict) .) "global" .global.envs.values) }}
 {{ include "cookielab.kubernetes.container.envs.from" (dict "specific" (dig "specific" "envs" "from" (dict) .) "global" .global.envs.from) }}
 {{ include "cookielab.kubernetes.container.resources" (dict "specific" (dig "specific" "resources" (dict) .) "global" .global.resources) }}
