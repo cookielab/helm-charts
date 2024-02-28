@@ -29,6 +29,6 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ $component.hpa.memThresholdPercent | default 75 }}
-{{- end }}
+{{ end }}
 {{- end }}
 {{- end }}
