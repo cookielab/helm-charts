@@ -41,6 +41,10 @@ lifecycle:
 {{- $values := merge $specific $global -}}
 {{- if $values -}}
 env:
+  - name: K8S_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
   {{- range $name, $value := $values }}
   - name: {{ $name }}
     value: {{ $value | quote }}
