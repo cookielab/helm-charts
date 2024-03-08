@@ -35,12 +35,13 @@ lifecycle:
       command: ["/bin/sh", "-c", "sleep 40"]
 {{- end -}}
 
-{{- define "cookielab.kubernetes.container.envs" -}}
-{{- $specific := dig "specific" (dict) . -}}
-{{- $globalValues := .global.values -}}
-{{- $globalValuesFrom := .global.valuesFrom -}}
-{{- $values := merge $specific $globalValues -}}
-{{- $valuesFrom := merge $specific $globalValuesFrom -}}
+{{- define "cookielab.kubernetes.container.envs.values" -}}
+{{- $specificValues := dig "specific" "values" (dict) . -}}
+{{- $specificValuesFrom := dig "specific" "valuesFrom" (dict) . -}}
+{{- $globalValues := .globalValues -}}
+{{- $globalValuesFrom := .globalValuesFrom -}}
+{{- $values := merge $specificValues $globalValues -}}
+{{- $valuesFrom := merge $specificValuesFrom $globalValuesFrom -}}
 {{- if or $values $valuesFrom -}}
 env:
   {{- range $name, $value := $values }}
