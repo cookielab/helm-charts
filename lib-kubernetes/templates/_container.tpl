@@ -35,19 +35,23 @@ lifecycle:
       command: ["/bin/sh", "-c", "sleep 40"]
 {{- end -}}
 
-{{- define "cookielab.kubernetes.container.envs.values" -}}
+{{- define "cookielab.kubernetes.container.envs" -}}
 {{- $specific := dig "specific" (dict) . -}}
-{{- $global := .global -}}
-{{- $values := merge $specific $global -}}
-{{- if $values -}}
+{{- $globalValues := .global.values -}}
+{{- $globalValuesFrom := .global.valuesFrom -}}
+{{- $values := merge $specific $globalValues -}}
+{{- $valuesFrom := merge $specific $globalValuesFrom -}}
+{{- if or $values $valuesFrom -}}
 env:
-  - name: K8S_NAMESPACE
-    valueFrom:
-      fieldRef:
-        fieldPath: metadata.namespace
   {{- range $name, $value := $values }}
   - name: {{ $name }}
     value: {{ $value | quote }}
+  {{- end -}}
+  {{- range $name, $value := $valuesFrom }}
+  - name: {{ $name }}
+    valueFrom:
+      fieldRef:
+        fieldPath: {{ $value | quote }}
   {{- end -}}
 {{- end -}}
 {{- end -}}
