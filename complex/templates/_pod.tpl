@@ -22,4 +22,5 @@ serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }
 nodeSelector:
 {{ toYaml .nodeSelector | indent 2 }}
 {{- end }}
+enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- end -}}
