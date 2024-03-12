@@ -1010,7 +1010,7 @@
             "format": "int64"
           },
           "enableServiceLinks": {
-            "description": "ability to not propagate env variables to all pods in namespace",
+            "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
             "type": "boolean"
           },
           "service": {
