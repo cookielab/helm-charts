@@ -28,3 +28,16 @@ components:
       arn: "arn:fake"
       securityGroupIds:
         - sg-fake
+
+  api-i1:
+    type: consumer
+    replicas: 1
+    hpa:
+      enabled: true
+      maxReplicas: 3
+      scaleUp:
+        stabilizationWindowSeconds: 300
+      scaleDown:
+        stabilizationWindowSeconds: 600
+    command:
+      - bin/cosume

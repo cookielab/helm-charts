@@ -16,6 +16,11 @@ spec:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
   minReplicas: {{ $component.replicas }}
   maxReplicas: {{ $component.hpa.maxReplicas }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ ($component.hpa.scaleUp).stabilizationWindowSeconds | default 0 }}
+    scaleDown:
+      stabilizationWindowSeconds: {{ ($component.hpa.scaleDown).stabilizationWindowSeconds | default 300 }}
   metrics:
     - type: Resource
       resource:
