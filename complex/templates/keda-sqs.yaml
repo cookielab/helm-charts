@@ -1,0 +1,24 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if and (eq $component.type "consumer") (not (empty $component.keda)) (eq $component.keda.type "sqs") -}}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}-sqs
+spec:
+  cooldownPeriod: {{ default $component.keda.cooldownPeriod 30 }}
+  minReplicaCount: {{ if not (kindIs "invalid" $component.keda.minReplicaCount) }}{{ $component.keda.minReplicaCount }}{{ else }}{{ 0 }}{{ end }}
+  maxReplicaCount: {{ default $component.keda.maxReplicaCount 1 }}
+  pollingInterval: {{ default $component.keda.pollingInterval 15 }}
+  scaleTargetRef:
+    name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  triggers:
+  - authenticationRef:
+      name: {{ default $component.keda.authName $.Values.global.keda.authName | quote }}
+    metadata:
+      awsRegion: {{ default $component.keda.awsRegion $.Values.global.keda.awsRegion | quote }}
+      queueLength: {{ default $component.keda.queueLength 1 | quote }}
+      queueURLFromEnv: {{ $component.keda.queueURLFromEnv }}
+    type: aws-sqs-queue
+{{ end -}}
+{{- end -}}
