@@ -936,6 +936,18 @@
               ]
             }
           }
+        },
+        "keda": {
+          "type": "object",
+          "properties": {
+            "awsRegion": {
+              "type": "string"
+            },
+            "authName": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -1153,6 +1165,58 @@
             "items": {
               "type": "string"
             }
+          },
+          "keda": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "sqs"
+              },
+              "cooldownPeriod": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "default": 30
+              },
+              "minReplicaCount": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "default": 0
+              },
+              "maxReplicaCount": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "default": 1
+              },
+              "pollingInterval": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 30,
+                "default": 30
+              },
+              "queueLength": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "default": 1
+              },
+              "queueURLFromEnv": {
+                "type": "string"
+              },
+              "authName": {
+                "type": "string"
+              },
+              "awsRegion": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "queueURLFromEnv"
+            ]
           }
         },
         "additionalProperties": false,
@@ -1176,6 +1240,9 @@
               },
               "ports": {
                 "type": "null"
+              },
+              "keda": {
+                "type": "null"
               }
             },
             "required": [
@@ -1188,6 +1255,9 @@
                 "const": "http"
               },
               "schedule": {
+                "type": "null"
+              },
+              "keda": {
                 "type": "null"
               }
             },
@@ -1203,6 +1273,9 @@
                 "const": "http-internal"
               },
               "schedule": {
+                "type": "null"
+              },
+              "keda": {
                 "type": "null"
               }
             },
@@ -1242,6 +1315,9 @@
                 "type": "null"
               },
               "ports": {
+                "type": "null"
+              },
+              "keda": {
                 "type": "null"
               }
             },

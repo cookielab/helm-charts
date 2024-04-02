@@ -1,0 +1,24 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+  keda:
+    authName: keda-auth
+    awsRegion: eu-west-1
+
+components:
+  consumer-foo:
+    type: consumer
+    command:
+      - bin/cosume
+    keda:
+      type: sqs
+      queueURLFromEnv: AWS_SQS_QUEUE_URL
+  consumer-bar:
+    type: consumer
+    command:
+      - bin/cosume
+    keda:
+      type: sqs
+      queueURLFromEnv: AWS_SQS_QUEUE_URL
