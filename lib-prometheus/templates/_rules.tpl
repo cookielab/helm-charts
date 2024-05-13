@@ -3,9 +3,12 @@
 {{- $component := .component -}}
 {{- $alertLabels := .alertLabels -}}
 {{ range $alertName, $alert := .alertRules -}}
-- alert: "{{ $application }}:{{ $component }}:{{ $alertName }}"
+- alert: "{{ $application }}-{{ $component }}:{{ $alertName }}"
   expr: {{ $alert.expression | quote }}
   for: {{ $alert.for | default "1m" | quote }}
+  annotations:
+    summary: {{ $alert.summary | default (printf "%s: %s (application: %s, component: %s)" $alertName $alert.severity $application $component) | quote }}
+    description: {{ $alert.description | default "No description" | quote }}
   labels:
     app_name: {{ $application | quote }}
     app_component: {{ $component | quote }}
@@ -15,15 +18,6 @@
 {{ end -}}
 {{ if $alert.labels -}}
 {{ $alert.labels | toYaml | indent 4 }}
-{{ end -}}
-{{ if (or $alert.message $alert.description) -}}
-  annotations:
-{{ if $alert.message -}}
-    message: {{ $alert.message | quote }}
-{{ end -}}
-{{ if $alert.description -}}
-    description: {{ $alert.description | quote }}
-{{ end -}}
 {{ end -}}
 {{ end -}}
 {{ end -}}
