@@ -1,4 +1,4 @@
-{{ define cookielab.prometheus.rules -}}
+{{- define "cookielab.prometheus.rules" -}}
 {{ range $alertName, $alert := .alertRules -}}
 - alert: {{ .application }}:{{ .component }}:{{ $alertName }}
   expr: {{ $alert.expression | quote }}
@@ -17,4 +17,4 @@
 {{ end -}}
 {{ end -}}
 {{ end -}}
-{{ end }}
+{{ end -}}
