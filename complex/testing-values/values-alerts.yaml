@@ -1,0 +1,40 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+  alertLabels:
+    project: test
+    environment: dev
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    alertRules:
+      Alert1:
+        expression: '0 != 0'
+      Alert2:
+        expression: '10 > 0'
+        severity: warning
+        summary: "Alert2 failed"
+        description: "If this fails, there's no need to worry"
+        labels:
+          custom: yeah
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake
