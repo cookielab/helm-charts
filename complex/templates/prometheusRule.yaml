@@ -1,0 +1,15 @@
+{{- $labels := default (dict) .Values.global.alertLabels -}}
+{{- range $componentName, $component := .Values.components -}}
+{{- if $component.alertRules -}}
+---
+apiVersion: monitoring.grafana.com/v1alpha2
+kind: PrometheusRule
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+spec:
+  groups:
+  - name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+    rules:
+      {{ include "cookielab.prometheus.alert_rules" (dict "alertRules" $component.alertRules "alertLabels" $labels "application" $.Release.Name "component" $componentName) | indent 6 | trim }}
+{{ end -}}
+{{ end }}

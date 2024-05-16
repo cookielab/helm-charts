@@ -657,6 +657,52 @@
         }
       }
     },
+    "recordRules": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "alertRules": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "metadata": {
       "type": "object",
       "properties": {
@@ -877,6 +923,12 @@
         "serviceAccountName": {
           "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
           "type": "string"
+        },
+        "alertLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "container": {
           "type": "object",
@@ -1140,6 +1192,9 @@
                 ]
               }
             }
+          },
+          "alertRules": {
+            "$ref": "#/definitions/alertRules"
           },
           "targetGroup": {
             "type": "object",
