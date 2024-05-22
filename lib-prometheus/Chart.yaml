@@ -2,4 +2,4 @@ apiVersion: v2
 name: lib-prometheus
 description: Prometheus library object components
 type: library
-version: 0.1.6
+version: 0.1.7

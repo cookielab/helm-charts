@@ -6,6 +6,7 @@ global:
   alertLabels:
     project: test
     environment: dev
+    custom: nope
 
 components:
   api:
