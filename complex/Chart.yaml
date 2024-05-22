@@ -2,7 +2,7 @@ apiVersion: v2
 name: complex
 description: For deploying complex (one-container or more containers), consumers and cronjobs application
 type: application
-version: 0.19.0
+version: 0.20.0
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 
 dependencies:
@@ -13,5 +13,5 @@ dependencies:
     version: "0.1.0"
     repository: "https://helm.cookielab.dev"
   - name: lib-prometheus
-    version: "0.1.6"
+    version: "0.1.7"
     repository: "https://helm.cookielab.dev"
