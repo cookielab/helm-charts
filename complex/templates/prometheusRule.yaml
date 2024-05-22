@@ -10,6 +10,6 @@ spec:
   groups:
   - name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
     rules:
-      {{ include "cookielab.prometheus.alert_rules" (dict "alertRules" $component.alertRules "alertLabels" $labels "application" $.Release.Name "component" $componentName) | indent 6 | trim }}
+      {{ include "cookielab.prometheus.alert_rules" (dict "alertRules" $component.alertRules "alertLabels" $labels "namespace" $.Release.Namespace "application" $.Release.Name "component" $componentName) | indent 6 | trim }}
 {{ end -}}
 {{ end }}
