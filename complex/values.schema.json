@@ -1180,6 +1180,10 @@
             "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
             "type": "boolean"
           },
+          "serviceAccountName": {
+            "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+            "type": "string"
+          },
           "service": {
             "type": "object",
             "properties": {
