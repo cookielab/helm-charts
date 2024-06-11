@@ -23,8 +23,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 100%
+      maxUnavailable: {{ coalesce (index $component "rollingUpdate" | default dict).maxUnavailable $.Values.global.rollingUpdate.maxUnavailable | quote}}
+      maxSurge: {{ coalesce (index $component "rollingUpdate" | default dict).maxSurge $.Values.global.rollingUpdate.maxSurge | quote}}
   selector:
     matchLabels:
       {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 6 | trim }}

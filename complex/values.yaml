@@ -18,5 +18,8 @@ global:
         secrets: []
         configMaps: []
   nodeSelector: {}
+  rollingUpdate:
+    maxUnavailable: 0%
+    maxSurge: 100%
   service:
     type: ClusterIP
