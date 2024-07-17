@@ -7,6 +7,6 @@ dependencies:
   version: 0.1.0
 - name: lib-prometheus
   repository: https://helm.cookielab.dev
-  version: 0.1.0
-digest: sha256:b1237b799d5f572b40f3282b1e1e276ae82dbbc74b2f67a6284bbc6579333f45
-generated: "2023-12-27T16:15:44.394688+01:00"
+  version: 0.1.7
+digest: sha256:b003d3cfd4de6d642293a912585ef58758d0edfa86d77ff609a71901437e2ee6
+generated: "2024-07-17T14:41:13.920321+02:00"

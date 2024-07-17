@@ -1,4 +1,6 @@
 global:
+  metadata:
+    partOf: project
   container:
     image:
       repository: cookielab/deployer
@@ -30,6 +32,14 @@ components:
         expression: '0 != 0'
       Alert2:
         expression: '10 > 0'
+        severity: warning
+        summary: "Alert2 failed"
+        description: "If this fails, there's no need to worry"
+        labels:
+          custom: yeah
+    alertTemplates:
+      Alert1:
+        expression: 'cron_task_last_completion_timestamp_seconds{kubernetes_namespace="{{ .Project }}-{{ .Environment }}",kubernetes_app_name_faked="xxx",result="ok"}'
         severity: warning
         summary: "Alert2 failed"
         description: "If this fails, there's no need to worry"
