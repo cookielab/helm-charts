@@ -721,6 +721,32 @@
         }
       }
     },
+    "alertTemplates": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "metadata": {
       "type": "object",
       "properties": {
@@ -1223,6 +1249,9 @@
           },
           "alertRules": {
             "$ref": "#/definitions/alertRules"
+          },
+          "alertTemplates": {
+            "$ref": "#/definitions/alertTemplates"
           },
           "targetGroup": {
             "type": "object",
