@@ -22,7 +22,6 @@ spec:
           {{- $template := $alertTemplate.expression }}
           {{- $template | replace "{{ .Environment }}" $env | replace "{{ .Project }}" $project | nindent 12 }}
         for: {{ $alertTemplate.for }}
-        severity: {{ $alertTemplate.severity }}
         description: {{ $alertTemplate.description | quote }}
         summary: {{ $alertTemplate.summary | quote }}
         labels:

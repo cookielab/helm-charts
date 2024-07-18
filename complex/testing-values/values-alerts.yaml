@@ -29,9 +29,9 @@ components:
           path: /health-check
     alertRules:
       Alert1:
-        expression: '0 != 0'
+        expression: "0 != 0"
       Alert2:
-        expression: '10 > 0'
+        expression: "10 > 0"
         severity: warning
         summary: "Alert2 failed"
         description: "If this fails, there's no need to worry"
@@ -40,12 +40,11 @@ components:
     alertTemplates:
       Alert1:
         expression: 'cron_task_last_completion_timestamp_seconds{kubernetes_namespace="{{ .Project }}-{{ .Environment }}",kubernetes_app_name_faked="xxx",result="ok"}'
-        severity: warning
         summary: "Alert2 failed"
         description: "If this fails, there's no need to worry"
         labels:
           custom: yeah
     targetGroup:
-      arn: 'arn:fake'
+      arn: "arn:fake"
       securityGroupIds:
         - sg-fake
