@@ -730,9 +730,6 @@
         "for": {
           "type": "string"
         },
-        "severity": {
-          "type": "string"
-        },
         "summary": {
           "type": "string"
         },
