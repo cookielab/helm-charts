@@ -7,6 +7,11 @@ initContainers:
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
   {{- end }}
 {{- end }}
+containers:
+  {{- range $containerName, $container := .containers }}
+  - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.container.lifecycle" . | indent 4 | trim }}
+  {{- end }}
 {{- if .tolerations }}
 tolerations:
   {{- range .tolerations }}
@@ -16,11 +21,6 @@ tolerations:
     effect: "{{ .effect }}"
   {{- end }}
 {{- end }}
-containers:
-  {{- range $containerName, $container := .containers }}
-  - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
-    {{ include "cookielab.kubernetes.container.lifecycle" . | indent 4 | trim }}
-  {{- end }}
 {{- if or .serviceAccountName $.global.serviceAccountName }}
 serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }}
 {{- end }}
