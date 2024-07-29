@@ -7,6 +7,15 @@ initContainers:
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
   {{- end }}
 {{- end }}
+{{- if .tolerations }}
+tolerations:
+  {{- range .tolerations }}
+  - key: "{{ .key }}"
+    operator: "{{ .operator }}"
+    value: "{{ .value }}"
+    effect: "{{ .effect }}"
+  {{- end }}
+{{- end }}
 containers:
   {{- range $containerName, $container := .containers }}
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}

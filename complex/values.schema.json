@@ -1063,6 +1063,35 @@
               "cronjob"
             ]
           },
+          "tolerations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The taint key that the toleration applies to."
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "The operator signifies the relationship between the key and the value. Valid values are 'Exists' and 'Equal'. Defaults to 'Equal'."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The taint value the toleration matches to. If the operator is 'Exists', this field should be empty."
+                },
+                "effect": {
+                  "type": "string",
+                  "description": "Toleration effect to match. Empty means to tolerate all taint effects with the same key. Valid values are 'NoSchedule', 'PreferNoSchedule', and 'NoExecute'."
+                },
+                "tolerationSeconds": {
+                  "type": "integer",
+                  "description": "Period of time the toleration (which must be of effect 'NoExecute') tolerates the taint. Expressed in seconds. Defaults to null."
+                }
+              },
+              "required": ["key", "effect"]
+            }
+          },
           "hpa": {
             "type": "object",
             "description": "HPA is the configuration for HorizontalPodAutoscaler.",

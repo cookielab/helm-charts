@@ -1,0 +1,13 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    tolerations:
+      - key: "testing"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
