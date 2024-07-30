@@ -1,6 +1,7 @@
 {{- range $componentName, $component := .Values.components -}}
 {{- if $component.pdb -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+{{- $extraMatchLabels := $component.pdb.extraMatchLabels | default (dict) -}}
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -14,5 +15,8 @@ spec:
     matchLabels:
       app.kubernetes.io/component: {{ $componentName }}
       app.kubernetes.io/name: {{ $.Chart.Name }}
-  {{- end -}}
-  {{- end -}}
+      {{- range $key, $value := $extraMatchLabels }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
