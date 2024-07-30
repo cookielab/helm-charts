@@ -12,6 +12,7 @@ spec:
   minAvailable: {{ $component.pdb.minAvailable | default "1" }}
   selector:
     matchLabels:
-      app: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+      app.kubernetes.io/component: {{ $componentName }}
+      app.kubernetes.io/name: {{ $.Chart.Name }}
   {{- end -}}
   {{- end -}}
