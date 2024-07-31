@@ -1293,6 +1293,16 @@
               }
             }
           },
+          "pdb": {
+            "type": "object",
+            "properties": {
+              "minAvailable": {
+                "type": "integer",
+                "description": "Minimum number of pods that must be available at any time."
+              }
+            },
+            "required": ["minAvailable"]
+          },
           "schedule": {
             "description": "The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.",
             "type": "string"
