@@ -7,6 +7,7 @@ global:
 components:
   cj-bar:
     type: cronjob
+    serviceAccountName: deployer2
     schedule: '10/* * * *'
     command:
       - bin/run-cron
