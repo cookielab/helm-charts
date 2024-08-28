@@ -3,7 +3,7 @@
 topologySpreadConstraints:
 - maxSkew: {{ .maxSkew | default 1 }}
   topologyKey: topology.kubernetes.io/zone
-  whenUnsatisfiable: DoNotSchedule
+  whenUnsatisfiable: {{ .whenUnsatisfiable | default "DoNotSchedule" }}
   labelSelector:
     matchLabels:
       {{ include "cookielab.kubernetes.labels.selector" .metadata | indent 6 | trim }}
