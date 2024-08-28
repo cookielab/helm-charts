@@ -26,7 +26,7 @@ serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }
 {{- end }}
 # securityContext:
 #   runAsNonRoot: true
-{{ include "cookielab.kubernetes.pod.topology-spread" (dict "metadata" .metadata) }}
+{{ include "cookielab.kubernetes.pod.topology-spread" (dict "kubeLabels" .kubeLabels "metadata" .metadata) }}
 {{- if .nodeSelector }}
 nodeSelector:
 {{ toYaml .nodeSelector | indent 2 }}
