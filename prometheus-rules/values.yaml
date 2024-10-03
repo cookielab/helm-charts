@@ -1,0 +1,22 @@
+global:
+  alertLabels:
+    severity: critical
+    environment: prod
+  metadata:
+    partOf: my-project
+
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "avg_over_time(cpu_usage[5m]) > 80"
+    for: 5m
+    description: "High CPU usage detected"
+    summary: "CPU usage is above 80% for the last 5 minutes"
+    labels:
+      priority: high
+  - alertName: HighMemoryUsage-stage
+    expression: "avg_over_time(memory_usage[5m]) > 90"
+    for: 10m
+    description: "High memory usage detected"
+    summary: "Memory usage is above 90% for the last 10 minutes"
+    labels:
+      environment: stage
