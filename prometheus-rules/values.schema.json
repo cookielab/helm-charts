@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prometheus Alerts Chart Values Schema",
+  "description": "Schema to validate the values.yaml for Prometheus alerts Helm chart.",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global settings for alert rules and metadata.",
+      "properties": {
+        "alertLabels": {
+          "type": "object",
+          "description": "Labels to be applied to all alerts unless overridden by specific alert labels.",
+          "additionalProperties": {
+            "type": "string",
+            "description": "A label key-value pair for the alerts."
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Global metadata to define project and other details.",
+          "properties": {
+            "partOf": {
+              "type": "string",
+              "description": "Project name or part of metadata."
+            }
+          },
+          "required": ["partOf"]
+        }
+      },
+      "required": ["alertLabels", "metadata"]
+    },
+    "alertRules": {
+      "type": "array",
+      "description": "List of alert rules to be created.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "alertName": {
+            "type": "string",
+            "description": "The name of the alert rule."
+          },
+          "expression": {
+            "type": "string",
+            "description": "The Prometheus expression (query) that defines the alert condition."
+          },
+          "for": {
+            "type": "string",
+            "description": "Duration for which the condition must be true before the alert is fired."
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of what this alert is about."
+          },
+          "summary": {
+            "type": "string",
+            "description": "A brief summary of the alert."
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels specific to this alert rule, which override global labels if defined.",
+            "additionalProperties": {
+              "type": "string",
+              "description": "A label key-value pair for the specific alert rule."
+            }
+          }
+        },
+        "required": ["alertName", "expression", "for", "description", "summary"]
+      }
+    }
+  },
+  "required": ["alertRules"]
+}
