@@ -1,5 +1,5 @@
 {{- range $componentName, $component := .Values.components -}}
-{{- if and (eq $component.type "http") (not $.Values.ingress) -}}
+{{- if and (eq $component.type "http") $component.ingress -}}
 {{- if $component.targetGroup -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---

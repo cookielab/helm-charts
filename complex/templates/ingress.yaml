@@ -1,18 +1,24 @@
-{{- if .Values.ingress }}
+{{- range $componentName, $component := .Values.components -}}
+{{- if and (eq $component.type "http") $component.ingress -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.name }}-ingress
-  {{- if .Values.ingress.annotations }}
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+  {{- with $component.ingress.annotations }}
   annotations:
-    {{- range $key, $value := .Values.ingress.annotations }}
+    {{- range $key, $value := . }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
   {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className | default "alb" }}
+  ingressClassName: {{ $component.ingress.className | default "alb" }}
   rules:
-  {{- range .Values.ingress.hosts }}
+  {{- range $component.ingress.hosts }}
   - host: {{ .host | quote }}
     http:
       paths:
@@ -21,14 +27,14 @@ spec:
         pathType: {{ .pathType | default "Prefix" }}
         backend:
           service:
-            name: {{ $.Values.name }}-service
+            name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
             port:
               number: {{ .servicePort | default 80 }}
       {{- end }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- with $component.ingress.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
+    {{- range . }}
     - hosts:
       {{- range .hosts }}
       - {{ . | quote }}
@@ -36,5 +42,5 @@ spec:
       secretName: {{ .secretName }}
     {{- end }}
   {{- end }}
-{{- end }}
-
+{{- end -}}
+{{- end -}}
