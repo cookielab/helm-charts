@@ -1390,7 +1390,11 @@
                 "type": "null"
               }
             },
-            "required": ["ports", "probes"]
+            "required": ["ports", "probes"],
+            "anyOf": [
+              { "required": ["ingress"] },
+              { "required": ["targetGroup"] }
+            ]
           },
           {
             "properties": {
