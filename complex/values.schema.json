@@ -875,6 +875,68 @@
         }
       },
       "additionalProperties": false
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "enum": ["ImplementationSpecific", "Exact", "Prefix"]
+                    }
+                  },
+                  "required": ["path", "pathType"]
+                }
+              }
+            },
+            "required": ["host"]
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "secretName": {
+                "type": "string"
+              }
+            },
+            "required": ["hosts", "secretName"]
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "properties": {
