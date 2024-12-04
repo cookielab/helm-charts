@@ -1,5 +1,6 @@
 {{- range $componentName, $component := .Values.components -}}
-{{- if eq $component.type "http" -}}
+{{- if and (eq $component.type "http") (not $component.ingress) -}}
+{{- if $component.targetGroup -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---
 apiVersion: elbv2.k8s.aws/v1beta1
@@ -28,5 +29,6 @@ spec:
               groupID: {{ $securityGroupIds }}
           {{- end }}
   {{- end }}
+{{- end -}}
 {{ end -}}
 {{- end -}}
