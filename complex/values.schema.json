@@ -875,68 +875,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "ingress": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false
-        },
-        "annotations": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "hosts": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "host": {
-                "type": "string"
-              },
-              "paths": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "pathType": {
-                      "type": "string",
-                      "enum": ["ImplementationSpecific", "Exact", "Prefix"]
-                    }
-                  },
-                  "required": ["path", "pathType"]
-                }
-              }
-            },
-            "required": ["host"]
-          }
-        },
-        "tls": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "hosts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "secretName": {
-                "type": "string"
-              }
-            },
-            "required": ["hosts", "secretName"]
-          }
-        }
-      },
-      "additionalProperties": false
     }
   },
   "properties": {
@@ -1084,6 +1022,84 @@
                 }
               },
               "required": ["key", "effect"]
+            }
+          },
+          "targetGroup": {
+            "type": "object",
+            "properties": {
+              "arn": {
+                "type": "string"
+              },
+              "securityGroupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "ingress": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "annotations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "string"
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "pathType": {
+                            "type": "string",
+                            "enum": [
+                              "Exact",
+                              "Prefix",
+                              "ImplementationSpecific"
+                            ]
+                          }
+                        },
+                        "required": ["path", "pathType"]
+                      }
+                    }
+                  },
+                  "required": ["host", "paths"]
+                }
+              },
+              "tls": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "secretName": {
+                      "type": "string"
+                    },
+                    "hosts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
           "hpa": {
@@ -1263,20 +1279,6 @@
           "alertTemplates": {
             "$ref": "#/definitions/alertTemplates"
           },
-          "targetGroup": {
-            "type": "object",
-            "properties": {
-              "arn": {
-                "type": "string"
-              },
-              "securityGroupIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "pdb": {
             "type": "object",
             "properties": {
@@ -1388,7 +1390,7 @@
                 "type": "null"
               }
             },
-            "required": ["ports", "targetGroup", "probes"]
+            "required": ["ports", "probes"]
           },
           {
             "properties": {

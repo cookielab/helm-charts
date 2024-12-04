@@ -1,23 +1,51 @@
-ingress:
-  className: alb
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/ssl-redirect: "443"
-  hosts:
-    - host: test.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-          servicePort: 80
-    - host: api.example.com
-      paths:
-        - path: /api
-          pathType: Prefix
-          servicePort: 8080
-  tls:
-    - hosts:
-        - test.example.com
-        - api.example.com
-      secretName: example-tls-secret
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    type: http
+    replicas: 2
+    hpa:
+      enabled: true
+      maxReplicas: 10
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    ingress:
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+        alb.ingress.kubernetes.io/ssl-redirect: "443"
+      hosts:
+        - host: api.example.com
+          paths:
+            - path: /api
+              pathType: Prefix
+              servicePort: 8080
+  api-i1:
+    type: consumer
+    replicas: 1
+    hpa:
+      enabled: true
+      maxReplicas: 3
+      scaleUp:
+        stabilizationWindowSeconds: 300
+      scaleDown:
+        stabilizationWindowSeconds: 600
+    command:
+      - bin/cosume
