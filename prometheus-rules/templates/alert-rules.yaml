@@ -8,6 +8,10 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ $.Release.Name }}-global-alerts
+  labels:
+    {{- range $key, $value := $globalLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
 spec:
   groups:
   - name: {{ $.Release.Name }}-global-alerts
