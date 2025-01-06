@@ -36,14 +36,23 @@ lifecycle:
 {{- end -}}
 
 {{- define "cookielab.kubernetes.container.envs.values" -}}
-{{- $specific := dig "specific" (dict) . -}}
-{{- $global := .global -}}
-{{- $values := merge $specific $global -}}
-{{- if $values -}}
+{{- $specificValues := dig "specific" "values" (dict) . -}}
+{{- $specificValuesFrom := dig "specific" "valuesFrom" (dict) . -}}
+{{- $globalValues := .globalValues -}}
+{{- $globalValuesFrom := .globalValuesFrom -}}
+{{- $values := merge $specificValues $globalValues -}}
+{{- $valuesFrom := merge $specificValuesFrom $globalValuesFrom -}}
+{{- if or $values $valuesFrom -}}
 env:
   {{- range $name, $value := $values }}
   - name: {{ $name }}
     value: {{ $value | quote }}
+  {{- end -}}
+  {{- range $name, $value := $valuesFrom }}
+  - name: {{ $name }}
+    valueFrom:
+      fieldRef:
+        fieldPath: {{ $value | quote }}
   {{- end -}}
 {{- end -}}
 {{- end -}}

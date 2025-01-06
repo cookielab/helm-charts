@@ -769,6 +769,12 @@
         "type": "string"
       }
     },
+    "envsValuesFrom": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "envsFrom": {
       "type": "object",
       "properties": {
@@ -821,6 +827,9 @@
           "properties": {
             "values": {
               "$ref": "#/definitions/envsValues"
+            },
+            "valuesFrom": {
+              "$ref": "#/definitions/envsValuesFrom"
             },
             "from": {
               "$ref": "#/definitions/envsFrom"
@@ -944,6 +953,9 @@
               "properties": {
                 "values": {
                   "$ref": "#/definitions/envsValues"
+                },
+                "valuesFrom": {
+                  "$ref": "#/definitions/envsValuesFrom"
                 },
                 "from": {
                   "$ref": "#/definitions/envsFrom"
@@ -1207,6 +1219,9 @@
             "properties": {
               "values": {
                 "$ref": "#/definitions/envsValues"
+              },
+              "valuesFrom": {
+                "$ref": "#/definitions/envsValuesFrom"
               },
               "from": {
                 "$ref": "#/definitions/envsFrom"

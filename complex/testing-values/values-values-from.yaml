@@ -1,0 +1,35 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+  envs:
+    values:
+      ENV_VAR_1: "some-value"
+      ENV_VAR_2: "another-value"
+    valuesFrom:
+      MY_POD_NAME: metadata.name
+      MY_POD_NAMESPACE: metadata.namespace
+      MY_POD_IP: status.podIP
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake
