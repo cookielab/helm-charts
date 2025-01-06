@@ -4,9 +4,9 @@ dependencies:
   version: 0.1.0
 - name: lib-kubernetes
   repository: https://helm.cookielab.dev
-  version: 0.1.2
+  version: 0.2.0
 - name: lib-prometheus
   repository: https://helm.cookielab.dev
   version: 0.1.7
-digest: sha256:f7961df736620268e7cd78fd330066cf51a3f6869a410f6225ca97b864fe101d
-generated: "2024-08-28T17:14:28.82335+02:00"
+digest: sha256:ccc1c57d920310625b2ba90f061521d5c6805461573b727890ce472837c09279
+generated: "2025-01-06T16:25:25.388931+01:00"
