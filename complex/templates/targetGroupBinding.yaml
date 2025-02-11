@@ -1,34 +1,43 @@
 {{- range $componentName, $component := .Values.components -}}
 {{- if and (eq $component.type "http") (not $component.ingress) -}}
-{{- if $component.targetGroup -}}
+{{- if or $component.targetGroup $component.targetGroups -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+{{- $targetGroups := list -}}
+{{- if $component.targetGroup -}}
+{{- $targetGroups = list $component.targetGroup -}}
+{{- end -}}
+{{- if $component.targetGroups -}}
+{{- $targetGroups = $component.targetGroups -}}
+{{- end -}}
+{{- range $targetGroup := $targetGroups }}
 ---
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: TargetGroupBinding
 metadata:
-  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}{{- if and $targetGroup.name (ne $targetGroup.name "default") }}-{{ $targetGroup.name }}{{- end }}{{- if $targetGroup.distinguisher }}-{{ $targetGroup.distinguisher }}{{- end }}
   labels:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
 spec:
   targetType: ip
-  targetGroupARN: {{ $component.targetGroup.arn }}
+  targetGroupARN: {{ $targetGroup.arn }}
   serviceRef:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
   {{- with index $component.ports 0 }}
     port: {{ .port }}
   {{- end }}
-  {{- if $component.targetGroup.securityGroupIds }}
+  {{- if $targetGroup.securityGroupIds }}
   networking:
     ingress:
       - ports:
           - protocol: TCP
         from:
-          {{- range $securityGroupIds := $component.targetGroup.securityGroupIds }}
+          {{- range $securityGroupIds := $targetGroup.securityGroupIds }}
           - securityGroup:
               groupID: {{ $securityGroupIds }}
           {{- end }}
   {{- end }}
+{{- end }}
 {{- end -}}
-{{ end -}}
+{{- end -}}
 {{- end -}}
