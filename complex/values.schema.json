@@ -1050,6 +1050,27 @@
               }
             }
           },
+          "targetGroups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "distinguisher": {
+                  "type": "string",
+                  "description": "Distinguisher is the name of the target group. If not provided, the name will be the same as the component name."
+                },
+                "arn": {
+                  "type": "string"
+                },
+                "securityGroupIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
           "ingress": {
             "type": "object",
             "properties": {
@@ -1412,7 +1433,8 @@
             "required": ["ports", "probes"],
             "anyOf": [
               { "required": ["ingress"] },
-              { "required": ["targetGroup"] }
+              { "required": ["targetGroup"] },
+              { "required": ["targetGroups"] }
             ]
           },
           {
