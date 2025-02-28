@@ -46,6 +46,6 @@ spec:
         {{ $.Values.global.metadata.annotations | toYaml | nindent 8 }}
         {{- end }}
     spec:
-      {{ include "pod.spec" (dict "containers" (dict "application" $component)  "global" $.Values.global "metadata" $.Values.global.metadata "nodeSelector" $component.nodeSelector "kubeLabels" $kubeLabels "enableServiceLinks" $component.enableServiceLinks "serviceAccountName" $component.serviceAccountName "tolerations" $component.tolerations ) | indent 6 | trim }}
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "metadata" $.Values.global.metadata "nodeSelector" $component.nodeSelector "kubeLabels" $kubeLabels "enableServiceLinks" $component.enableServiceLinks "serviceAccountName" $component.serviceAccountName "tolerations" $component.tolerations "imagePullSecrets" $component.imagePullSecrets) | indent 6 | trim }}
 {{ end -}}
 {{- end -}}

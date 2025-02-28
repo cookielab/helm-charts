@@ -26,7 +26,7 @@ spec:
         {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
         {{- end }}
     spec:
-      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels "restartPolicy" "Never" "serviceAccountName" $component.serviceAccountName  ) | indent 6 | trim }}
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels "restartPolicy" "Never" "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets) | indent 6 | trim }}
 
 {{ end -}}
 {{- end -}}
