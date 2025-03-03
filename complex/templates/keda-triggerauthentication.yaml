@@ -1,0 +1,12 @@
+{{- range $componentName, $component := .Values.components -}}
+ {{- if and (not (empty $component.keda)) (default true (get $component.keda "triggerAuthEnabled")) }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ $componentName }}-auth
+spec:
+  podIdentity:
+    provider: aws
+  {{- end }}
+{{- end }}
