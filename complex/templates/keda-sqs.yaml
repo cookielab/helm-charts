@@ -14,7 +14,7 @@ spec:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
   triggers:
   - authenticationRef:
-      name: {{ default $component.keda.authName $.Values.global.keda.authName | quote }}
+      name: {{ $componentName }}-auth
     metadata:
       awsRegion: {{ default $component.keda.awsRegion $.Values.global.keda.awsRegion | quote }}
       queueLength: {{ default $component.keda.queueLength 1 | quote }}
