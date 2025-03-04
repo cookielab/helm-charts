@@ -994,6 +994,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "imagePullSecrets": {
+          "description": "List of references to secrets in the same namespace to use for pulling any images",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
@@ -1388,6 +1395,13 @@
             },
             "additionalProperties": false,
             "required": ["type", "queueURLFromEnv"]
+          },
+          "imagePullSecrets": {
+            "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false,

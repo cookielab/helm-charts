@@ -1,6 +1,14 @@
 {{- define "pod.spec" -}}
 restartPolicy: {{ default "Always" .restartPolicy }}
 terminationGracePeriodSeconds: {{ default 120 .terminationGracePeriodSeconds }}
+{{- with .imagePullSecrets | default .global.imagePullSecrets -}}
+{{- if . }}
+imagePullSecrets:
+{{- range . }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- if .initContainers }}
 initContainers:
   {{- range $containerName, $container := .initContainers }}
