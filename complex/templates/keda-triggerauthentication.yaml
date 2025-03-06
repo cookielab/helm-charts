@@ -1,5 +1,5 @@
 {{- range $componentName, $component := .Values.components -}}
- {{- if and (not (empty $component.keda)) (default true (get $component.keda "triggerAuthEnabled")) }}
+ {{- if and (not (empty $component.keda)) (not (eq (default "operator" $component.keda.identityOwner) "operator")) (default true (get $component.keda "triggerAuthEnabled")) }}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication

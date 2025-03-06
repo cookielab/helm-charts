@@ -13,12 +13,15 @@ spec:
   scaleTargetRef:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
   triggers:
-  - authenticationRef:
+  - type: aws-sqs-queue
+    {{ if not (eq (default "operator" $component.keda.identityOwner) "operator") -}}
+    authenticationRef:
       name: {{ $componentName }}-auth
+    {{ end -}}
     metadata:
       awsRegion: {{ default $component.keda.awsRegion $.Values.global.keda.awsRegion | quote }}
       queueLength: {{ default $component.keda.queueLength 1 | quote }}
       queueURLFromEnv: {{ $component.keda.queueURLFromEnv }}
-    type: aws-sqs-queue
+      identityOwner: {{ default "operator" $component.keda.identityOwner }}
 {{ end -}}
 {{- end -}}
