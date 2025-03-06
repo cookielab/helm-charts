@@ -1389,6 +1389,10 @@
               "authName": {
                 "type": "string"
               },
+              "identityOwner": {
+                "type": "string",
+		"default": "operator"
+              },
               "awsRegion": {
                 "type": "string"
               }
