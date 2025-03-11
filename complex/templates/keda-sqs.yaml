@@ -20,6 +20,9 @@ spec:
     {{ end -}}
     metadata:
       awsRegion: {{ default $component.keda.awsRegion $.Values.global.keda.awsRegion | quote }}
+      {{- if $component.keda.activationThreshold }}
+      activationThreshold: {{ $component.keda.activationThreshold | quote }}
+      {{- end }}
       queueLength: {{ default $component.keda.queueLength 1 | quote }}
       queueURLFromEnv: {{ $component.keda.queueURLFromEnv }}
       identityOwner: {{ default "operator" $component.keda.identityOwner }}

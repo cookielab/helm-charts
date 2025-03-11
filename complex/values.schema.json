@@ -1377,6 +1377,12 @@
                 "minimum": 30,
                 "default": 30
               },
+	      "activationThreshold": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "default": 0
+	      },
               "queueLength": {
                 "type": "integer",
                 "format": "int32",
