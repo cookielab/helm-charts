@@ -1142,6 +1142,33 @@
               }
             }
           },
+          "vpa": {
+            "type": "object",
+            "description": "VPA is the configuration for VerticalPodAutoscaler.",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "updateMode": {
+                "type": "string",
+                "enum": ["Auto", "Off"]
+              },
+              "minCpu": {
+                "type": "string"
+              },
+              "maxCpu": {
+                "type": "string"
+              },
+              "minMemory": {
+                "type": "string"
+              },
+              "maxMemory": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
           "hpa": {
             "type": "object",
             "description": "HPA is the configuration for HorizontalPodAutoscaler.",
@@ -1377,12 +1404,12 @@
                 "minimum": 30,
                 "default": 30
               },
-	      "activationThreshold": {
+              "activationThreshold": {
                 "type": "integer",
                 "format": "int32",
                 "minimum": 0,
                 "default": 0
-	      },
+              },
               "queueLength": {
                 "type": "integer",
                 "format": "int32",
@@ -1397,7 +1424,7 @@
               },
               "identityOwner": {
                 "type": "string",
-		"default": "operator"
+                "default": "operator"
               },
               "awsRegion": {
                 "type": "string"

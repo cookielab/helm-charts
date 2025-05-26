@@ -1,0 +1,34 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    type: http
+    replicas: 2
+    vpa:
+      enabled: true
+      updateMode: "Auto"
+      minCpu: 100m
+      maxCpu: 500m
+      minMemory: 256Mi
+      maxMemory: 2Gi
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: "arn:fake"
+      securityGroupIds:
+        - sg-fake
