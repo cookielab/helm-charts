@@ -25,7 +25,7 @@ spec:
       topic: {{ $component.keda.kafka.topic | quote }}
       {{ end -}}
       consumerGroup: {{ $component.keda.kafka.consumerGroup | quote }}
-      activationLagThreshold: {{ $component.keda.kafka.activationLagThreshold | default "0" | quote }}
+      activationLagThreshold: {{ $component.keda.kafka.activationLagThreshold | default "1" | quote }}
       lagThreshold: {{ $component.keda.kafka.lagThreshold | default "10" | quote }}
       tls: {{ $component.keda.kafka.tls | default "enable" | quote }}
       identityOwner: {{ $component.keda.kafka.identityOwner | default "operator"  }}
