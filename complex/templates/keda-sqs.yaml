@@ -1,30 +1,35 @@
 {{- range $componentName, $component := .Values.components -}}
 {{- if and (eq $component.type "consumer") (not (empty $component.keda)) (eq $component.keda.type "sqs") -}}
+
+{{- /* validate missing variables */ -}}
+{{- if (not $component.keda.sqs.queueURLFromEnv) -}}
+{{- fail (printf "KEDA SQS consumer '%s': missing required environment variable(s). Please define 'queueURLFromEnv' in values.yaml" $componentName) -}}
+{{- end -}}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}-sqs
 spec:
-  cooldownPeriod: {{ default $component.keda.cooldownPeriod 30 }}
+  cooldownPeriod: {{ $component.keda.cooldownPeriod | default 30 }}
   minReplicaCount: {{ if not (kindIs "invalid" $component.keda.minReplicaCount) }}{{ $component.keda.minReplicaCount }}{{ else }}{{ 0 }}{{ end }}
-  maxReplicaCount: {{ default $component.keda.maxReplicaCount 1 }}
-  pollingInterval: {{ default $component.keda.pollingInterval 15 }}
+  maxReplicaCount: {{ $component.keda.maxReplicaCount | default 1 }}
+  pollingInterval: {{ $component.keda.pollingInterval | default 15 }}
   scaleTargetRef:
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
   triggers:
   - type: aws-sqs-queue
-    {{ if not (eq (default "operator" $component.keda.identityOwner) "operator") -}}
+    {{ if not (eq ($component.keda.sqs.identityOwner | default "operator") "operator") -}}
     authenticationRef:
       name: {{ $componentName }}-auth
     {{ end -}}
     metadata:
-      awsRegion: {{ default $component.keda.awsRegion $.Values.global.keda.awsRegion | quote }}
-      {{- if $component.keda.activationThreshold }}
-      activationThreshold: {{ $component.keda.activationThreshold | quote }}
+      awsRegion: {{ $component.keda.sqs.awsRegion | default $.Values.global.keda.awsRegion | quote }}
+      {{- if $component.keda.sqs.activationThreshold }}
+      activationThreshold: {{ $component.keda.sqs.activationThreshold | default "1" | quote }}
       {{- end }}
-      queueLength: {{ default $component.keda.queueLength 1 | quote }}
-      queueURLFromEnv: {{ $component.keda.queueURLFromEnv }}
-      identityOwner: {{ default "operator" $component.keda.identityOwner }}
+      queueLength: {{ $component.keda.sqs.queueLength | default 1 | quote }}
+      queueURLFromEnv: {{ $component.keda.sqs.queueURLFromEnv }}
+      identityOwner: {{ $component.keda.sqs.identityOwner | default "operator" }}
 {{ end -}}
 {{- end -}}
