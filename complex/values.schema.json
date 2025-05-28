@@ -1378,7 +1378,8 @@
             "type": "object",
             "properties": {
               "type": {
-                "const": "sqs"
+                "type": "string",
+                "enum": ["sqs", "kafka"]
               },
               "cooldownPeriod": {
                 "type": "integer",
@@ -1401,37 +1402,75 @@
               "pollingInterval": {
                 "type": "integer",
                 "format": "int32",
-                "minimum": 30,
+                "minimum": 15,
                 "default": 30
               },
-              "activationThreshold": {
-                "type": "integer",
-                "format": "int32",
-                "minimum": 0,
-                "default": 0
-              },
-              "queueLength": {
-                "type": "integer",
-                "format": "int32",
-                "minimum": 1,
-                "default": 1
-              },
-              "queueURLFromEnv": {
-                "type": "string"
-              },
-              "authName": {
-                "type": "string"
-              },
-              "identityOwner": {
-                "type": "string",
-                "default": "operator"
-              },
-              "awsRegion": {
-                "type": "string"
+              "sqs": {
+                "type": "object",
+                "properties": {
+                  "activationThreshold": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "queueLength": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "default": 1
+                  },
+                  "queueURLFromEnv": {
+                    "type": "string"
+                  }
+                },
+                "authName": {
+                  "type": "string"
+                },
+                "identityOwner": {
+                  "type": "string",
+                  "default": "operator"
+                },
+                "awsRegion": {
+                  "type": "string"
+                }
+               },
+               "kafka": {
+                "type": "object",
+                "properties": {
+                    "bootstrapServers": {
+                    "type": "string"
+                  },
+                  "consumerGroup": {
+                    "type": "string"
+                  },
+                  "topic": {
+                    "type": "string"
+                  },
+                  "lagThreshold": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "default": 10
+                  },
+                  "activationLagThreshold": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "identityOwner": {
+                    "type": "string",
+                    "default": "operator"
+                  },
+                  "awsRegion": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "additionalProperties": false,
-            "required": ["type", "queueURLFromEnv"]
+            "required": ["type"]
           },
           "imagePullSecrets": {
             "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",

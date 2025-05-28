@@ -10,23 +10,26 @@ components:
   consumer-foo:
     type: consumer
     command:
-      - bin/cosume
+      - bin/consume
     keda:
-      type: sqs
+      type: kafka
       minReplicaCount: 0
       maxReplicaCount: 1
       cooldownPeriod: 45
       pollingInterval: 30
-      sqs:
-        activationThreshold: 1
-        queueURLFromEnv: AWS_SQS_QUEUE_URL
-        authName: consumer-foo-auth
-        identityOwner: pod
+      kafka:
+        topic: topic1
+        bootstrapServers: server1,server2
+        consumerGroup: group1
+        lagThreshold: 10
+        awsRegion: eu-central-1
+
   consumer-bar:
     type: consumer
     command:
-      - bin/cosume
+      - bin/consume
     keda:
-      type: sqs
-      sqs:
-        queueURLFromEnv: AWS_SQS_QUEUE_URL
+      type: kafka
+      kafka:
+        bootstrapServers: server1,server2
+        consumerGroup: group1
