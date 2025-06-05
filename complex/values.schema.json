@@ -1402,7 +1402,7 @@
               "pollingInterval": {
                 "type": "integer",
                 "format": "int32",
-                "minimum": 15,
+                "minimum": 1,
                 "default": 30
               },
               "sqs": {
