@@ -8,4 +8,4 @@ components:
   consumer-foo:
     type: consumer
     command:
-      - bin/cosume
+      - bin/consume
