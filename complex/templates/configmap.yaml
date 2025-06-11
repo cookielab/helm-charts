@@ -1,0 +1,30 @@
+{{- if .Values.configMaps }}
+{{- range $configMapName, $configMapData := .Values.configMaps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $configMapName }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $.Chart.Name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/component: config
+    {{- if $configMapData.labels }}
+    {{- toYaml $configMapData.labels | nindent 4 }}
+    {{- end }}
+  {{- if $configMapData.annotations }}
+  annotations:
+    {{- toYaml $configMapData.annotations | nindent 4 }}
+  {{- end }}
+{{- if $configMapData.immutable }}
+immutable: {{ $configMapData.immutable }}
+{{- end }}
+data:
+{{- range $key, $value := $configMapData.data }}
+  {{ $key }}: {{ tpl ($value | toString) $ | quote }}
+{{- end }}
+{{- end }}
+{{- end }} 

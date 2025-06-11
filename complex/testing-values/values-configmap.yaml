@@ -1,0 +1,59 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+    envs:
+      values:
+        ENV_VAR_1: "some-value"
+        ENV_VAR_2: "another-value"
+      from:
+        configMaps:
+          - app-config
+          - shared-config
+
+configMaps:
+  app-config:
+    data:
+      DATABASE_URL: "postgresql://localhost:5432/myapp"
+      REDIS_URL: "redis://localhost:6379"
+      LOG_LEVEL: "info"
+      MAX_CONNECTIONS: "100"
+      APP_NAME: "{{ .Release.Name }}"
+    immutable: false
+    labels:
+      config-type: "application"
+      environment: "testing"
+    annotations:
+      config.kubernetes.io/last-applied-configuration: "manual"
+  shared-config:
+    data:
+      FEATURE_FLAG_A: "true"
+      FEATURE_FLAG_B: "false"
+      APP_ENV: "testing"
+      RELEASE_NAME: "{{ .Release.Name }}"
+    immutable: true
+    labels:
+      config-type: "shared"
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake 

@@ -1005,6 +1005,41 @@
       },
       "additionalProperties": false
     },
+    "configMaps": {
+      "type": "object",
+      "description": "ConfigMaps to be created",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "immutable": {
+            "type": "boolean",
+            "description": "If set to true, ensures that data stored in the ConfigMap cannot be updated"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Additional labels for the ConfigMap",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "description": "Additional annotations for the ConfigMap",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["data"],
+        "additionalProperties": false
+      }
+    },
     "components": {
       "type": "object",
       "additionalProperties": {
