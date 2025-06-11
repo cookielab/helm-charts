@@ -842,6 +842,9 @@
         },
         "probes": {
           "$ref": "#/definitions/probes"
+        },
+        "volumeMounts": {
+          "$ref": "#/definitions/volumeMounts"
         }
       },
       "required": ["image"],
@@ -881,6 +884,40 @@
         },
         "nodeSelector": {
           "$ref": "#/definitions/nodeSelector"
+        }
+      },
+      "additionalProperties": false
+    },
+    "volumeMounts": {
+      "type": "object",
+      "properties": {
+        "configMaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "configMapName": {"type": "string"},
+              "mountPath": {"type": "string"},
+              "readOnly": {"type": "boolean", "default": true},
+              "subPath": {"type": "string"}
+            },
+            "required": ["name", "configMapName", "mountPath"]
+          }
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "secretName": {"type": "string"},
+              "mountPath": {"type": "string"},
+              "readOnly": {"type": "boolean", "default": true},
+              "subPath": {"type": "string"}
+            },
+            "required": ["name", "secretName", "mountPath"]
+          }
         }
       },
       "additionalProperties": false
@@ -962,6 +999,9 @@
                 }
               },
               "additionalProperties": false
+            },
+            "volumeMounts": {
+              "$ref": "#/definitions/volumeMounts"
             }
           },
           "additionalProperties": false,

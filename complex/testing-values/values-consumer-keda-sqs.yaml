@@ -10,7 +10,7 @@ components:
   consumer-foo:
     type: consumer
     command:
-      - bin/cosume
+      - bin/consume
     keda:
       type: sqs
       minReplicaCount: 0
@@ -25,7 +25,7 @@ components:
   consumer-bar:
     type: consumer
     command:
-      - bin/cosume
+      - bin/consume
     keda:
       type: sqs
       sqs:

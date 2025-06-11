@@ -40,4 +40,44 @@ nodeSelector:
 {{ toYaml .nodeSelector | indent 2 }}
 {{- end }}
 enableServiceLinks: {{ default "False" .enableServiceLinks }}
+{{- $globalVolumeMounts := .global.volumeMounts }}
+{{- $localVolumeMounts := .volumeMounts }}
+{{- if or $globalVolumeMounts $localVolumeMounts .volumes }}
+volumes:
+{{- if $globalVolumeMounts }}
+{{- if $globalVolumeMounts.configMaps }}
+{{- range $globalVolumeMounts.configMaps }}
+  - name: {{ .name }}
+    configMap:
+      name: {{ .configMapName }}
+{{- end }}
+{{- end }}
+{{- if $globalVolumeMounts.secrets }}
+{{- range $globalVolumeMounts.secrets }}
+  - name: {{ .name }}
+    secret:
+      secretName: {{ .secretName }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if $localVolumeMounts }}
+{{- if $localVolumeMounts.configMaps }}
+{{- range $localVolumeMounts.configMaps }}
+  - name: {{ .name }}
+    configMap:
+      name: {{ .configMapName }}
+{{- end }}
+{{- end }}
+{{- if $localVolumeMounts.secrets }}
+{{- range $localVolumeMounts.secrets }}
+  - name: {{ .name }}
+    secret:
+      secretName: {{ .secretName }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .volumes }}
+{{ toYaml .volumes | indent 2 }}
+{{- end }}
+{{- end }}
 {{- end -}}

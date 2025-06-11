@@ -48,4 +48,4 @@ components:
       scaleDown:
         stabilizationWindowSeconds: 600
     command:
-      - bin/cosume
+      - bin/consume
