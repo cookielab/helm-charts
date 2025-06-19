@@ -1252,6 +1252,11 @@
                 "type": "boolean",
                 "default": false
               },
+              "minReplicas": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0
+              },
               "maxReplicas": {
                 "type": "integer",
                 "format": "int32",

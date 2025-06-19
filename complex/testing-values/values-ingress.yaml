@@ -10,6 +10,7 @@ components:
     replicas: 2
     hpa:
       enabled: true
+      minReplicas: 2
       maxReplicas: 10
     ports:
       - port: 3000
