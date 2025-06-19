@@ -26,4 +26,9 @@ components:
       securityGroupIds:
         - sg-fake
     pdb:
-      minAvailable: 2
+      maxUnavailable: 1
+  worker:
+    type: consumer
+    replicas: 1
+    pdb:
+      minAvailable: 1

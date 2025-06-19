@@ -1430,14 +1430,30 @@
             "$ref": "#/definitions/alertTemplates"
           },
           "pdb": {
-            "type": "object",
-            "properties": {
-              "minAvailable": {
-                "type": "integer",
-                "description": "Minimum number of pods that must be available at any time."
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "maxUnavailable": {
+                      "type": "integer",
+                      "description": "Maximum number of pods that can be unavailable at any time."
+                    }
+                },
+                "required": ["maxUnavailable"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "minAvailable": {
+                    "type": "integer",
+                    "description": "Minimum number of pods that must be available at any time."
+                  }
+                },
+                "required": ["minAvailable"],
+                "additionalProperties": false
               }
-            },
-            "required": ["minAvailable"]
+            ]
           },
           "schedule": {
             "description": "The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.",
