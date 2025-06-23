@@ -54,6 +54,7 @@ spec:
         activationThreshold: {{ $trigger.activationThreshold | quote }}
         {{- end }}
         awsRegion: {{ $awsRegion | quote }}
+        identityOwner: {{ $trigger.identityOwner | default "operator" | quote }}
         queueLength: {{ $trigger.queueLength | quote }}
         queueURLFromEnv: {{ $trigger.queueURLFromEnv | quote }}
 
