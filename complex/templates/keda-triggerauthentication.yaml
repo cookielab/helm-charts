@@ -1,0 +1,17 @@
+{{- range $componentName, $component := .Values.components -}}
+  {{- if and (eq $component.type "consumer") (hasKey $component "keda") }}
+    {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
+    {{- range $i, $trigger := $component.keda.triggers }}
+      {{- if and (eq $trigger.type "aws-sqs-queue") (ne (default "operator" $trigger.identityOwner) "operator") (default true $trigger.triggerAuthEnabled) }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ $name }}-auth-{{ $i }}
+spec:
+  podIdentity:
+    provider: aws
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

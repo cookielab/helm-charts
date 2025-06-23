@@ -1,6 +1,105 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "definitions": {
+    "kedaTriggerAwsSqsQueue": {
+      "type": "object",
+      "required": ["queueURLFromEnv"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "aws-sqs-queue"
+        },
+        "activationThreshold": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        },
+        "queueLength": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "default": 1
+        },
+        "queueURLFromEnv": {
+          "type": "string"
+        },
+        "authName": {
+          "type": "string"
+        },
+        "identityOwner": {
+          "type": "string",
+          "default": "operator"
+        },
+        "awsRegion": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+     },
+     "kedaTriggerKafka": {
+      "type": "object",
+      "required": ["bootstrapServers","consumerGroup"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "kafka"
+        },
+        "bootstrapServers": {
+          "type": "string"
+        },
+        "consumerGroup": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "lagThreshold": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 10
+        },
+        "activationLagThreshold": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        },
+        "identityOwner": {
+          "type": "string",
+          "default": "operator"
+        },
+        "awsRegion": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "kedaTriggerCron": {
+      "type": "object",
+      "required": ["start","end","desiredReplicas"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "cron"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "desiredReplicas": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false
+    },
     "livenessProbe": {
       "description": "Periodic probe of container liveness. Container will be restarted if the probe fails. Cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
       "type": "object",
@@ -1473,10 +1572,6 @@
           "keda": {
             "type": "object",
             "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["sqs", "kafka"]
-              },
               "cooldownPeriod": {
                 "type": "integer",
                 "format": "int32",
@@ -1501,72 +1596,26 @@
                 "minimum": 1,
                 "default": 30
               },
-              "sqs": {
-                "type": "object",
-                "properties": {
-                  "activationThreshold": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 0,
-                    "default": 0
-                  },
-                  "queueLength": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 1,
-                    "default": 1
-                  },
-                  "queueURLFromEnv": {
-                    "type": "string"
-                  }
+              "triggers": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/kedaTriggerAwsSqsQueue"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerKafka"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerCron"
+                    }
+                  ]
                 },
-                "authName": {
-                  "type": "string"
-                },
-                "identityOwner": {
-                  "type": "string",
-                  "default": "operator"
-                },
-                "awsRegion": {
-                  "type": "string"
-                }
-               },
-               "kafka": {
-                "type": "object",
-                "properties": {
-                    "bootstrapServers": {
-                    "type": "string"
-                  },
-                  "consumerGroup": {
-                    "type": "string"
-                  },
-                  "topic": {
-                    "type": "string"
-                  },
-                  "lagThreshold": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 0,
-                    "default": 10
-                  },
-                  "activationLagThreshold": {
-                    "type": "integer",
-                    "format": "int32",
-                    "minimum": 0,
-                    "default": 0
-                  },
-                  "identityOwner": {
-                    "type": "string",
-                    "default": "operator"
-                  },
-                  "awsRegion": {
-                    "type": "string"
-                  }
-                }
+                "minItems": 1
               }
             },
             "additionalProperties": false,
-            "required": ["type"]
+            "required": []
           },
           "imagePullSecrets": {
             "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",

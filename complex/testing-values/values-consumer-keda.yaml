@@ -1,0 +1,39 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+  keda:
+    awsRegion: eu-west-1
+
+components:
+  consumer-foo:
+    type: consumer
+    command:
+      - bin/consume
+    envs:
+      values:
+        SQS_QUEUE: https://sqs.us-east-1.amazonaws.com/123456789012/test-queue
+    keda:
+      minReplicaCount: 1
+      maxReplicaCount: 10
+      pollingInterval: 30
+      cooldownPeriod: 300
+
+      triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          awsRegion: us-east-1
+          activationThreshold: 1
+          identityOwner: pod
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: test-topic
+          consumerGroup: test-consumer-group
+          lagThreshold: 10
+        - type: cron
+          timezone: Europe/Prague
+          start: "0 6 * * *"
+          end: "0 18 * * *"
+          desiredReplicas: 2
