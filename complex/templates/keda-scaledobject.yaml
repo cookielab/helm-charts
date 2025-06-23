@@ -1,0 +1,74 @@
+{{- range $componentName, $component := .Values.components }}
+{{- if and (eq $component.type "consumer") (hasKey $component "keda") }}
+{{- $keda := $component.keda }}
+{{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
+
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $name }}-scaler
+spec:
+  scaleTargetRef:
+    name: {{ $name }}
+  minReplicaCount: {{ $keda.minReplicaCount | default 0 }}
+  maxReplicaCount: {{ $keda.maxReplicaCount | default 2 }}
+  pollingInterval: {{ $keda.pollingInterval | default 15 }}
+  cooldownPeriod: {{ $keda.cooldownPeriod | default 30 }}
+  triggers:
+  {{- range $i, $trigger := $keda.triggers }}
+    {{- if eq $trigger.type "kafka" }}
+      {{- $awsRegion := $trigger.awsRegion | default $.Values.global.keda.awsRegion }}
+      {{- if (not $awsRegion) }}
+        {{- fail (printf "Kafka trigger for '%s' is missing required field(s)." $componentName) }}
+      {{- end }}
+    - type: kafka
+      metadata:
+        activationLagThreshold: {{ $trigger.activationLagThreshold | default "1" | quote }}
+        bootstrapServers: {{ $trigger.bootstrapServers | quote }}
+        consumerGroup: {{ $trigger.consumerGroup | quote }}
+        {{- if $trigger.topic }}
+        topic: {{ $trigger.topic | quote }}
+        {{- end }}
+        identityOwner: {{ $trigger.identityOwner | default "operator" | quote }}
+        tls: "enable"
+        lagThreshold: {{ $trigger.lagThreshold | quote }}
+        {{- if eq ($trigger.identityOwner | default "operator") "operator" }}
+        awsRegion: {{ $awsRegion | quote }}
+        sasl: oauthbearer
+        saslTokenProvider: aws_msk_iam
+        {{- end }}
+
+    {{- else if eq $trigger.type "aws-sqs-queue" }}
+      {{- $awsRegion := $trigger.awsRegion | default $.Values.global.keda.awsRegion }}
+      {{- if (not $awsRegion) }}
+        {{- fail (printf "SQS trigger for '%s' is missing required field(s)." $componentName) }}
+      {{- end }}
+    - type: aws-sqs-queue
+      {{ if not (eq ($trigger.identityOwner | default "operator") "operator") -}}
+      authenticationRef:
+        name: {{ $componentName }}-auth-{{ $i }}
+      {{ end -}}
+      metadata:
+        {{- if $trigger.activationThreshold }}
+        activationThreshold: {{ $trigger.activationThreshold | quote }}
+        {{- end }}
+        awsRegion: {{ $awsRegion | quote }}
+        queueLength: {{ $trigger.queueLength | quote }}
+        queueURLFromEnv: {{ $trigger.queueURLFromEnv | quote }}
+
+    {{- else if eq $trigger.type "cron" }}
+    - type: cron
+      metadata:
+        desiredReplicas: {{ $trigger.desiredReplicas | quote }}
+        timezone: {{ $trigger.timezone | quote }}
+        start: {{ $trigger.start | quote }}
+        end: {{ $trigger.end | quote }}
+
+    {{- else }}
+      {{- fail (printf "Unknown trigger type '%s' in component '%s'" $trigger.type $componentName) }}
+    {{- end }}
+  {{- end }}
+
+{{- end }}
+{{- end }}
