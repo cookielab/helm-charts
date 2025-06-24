@@ -27,6 +27,7 @@ spec:
         activationLagThreshold: {{ $trigger.activationLagThreshold | default "1" | quote }}
         bootstrapServers: {{ $trigger.bootstrapServers | quote }}
         consumerGroup: {{ $trigger.consumerGroup | quote }}
+        offsetResetPolicy: {{ $trigger.offsetResetPolicy | default "earliest" }}
         {{- if $trigger.topic }}
         topic: {{ $trigger.topic | quote }}
         {{- end }}
