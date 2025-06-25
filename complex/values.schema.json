@@ -9,7 +9,7 @@
           "type": "string",
           "default": "aws-sqs-queue"
         },
-        "activationThreshold": {
+        "activationQueueLength": {
           "type": "integer",
           "format": "int32",
           "minimum": 0,

@@ -24,7 +24,7 @@ spec:
       {{- end }}
     - type: kafka
       metadata:
-        activationLagThreshold: {{ $trigger.activationLagThreshold | default "1" | quote }}
+        activationLagThreshold: {{ $trigger.activationLagThreshold | default "0" | quote }}
         bootstrapServers: {{ $trigger.bootstrapServers | quote }}
         consumerGroup: {{ $trigger.consumerGroup | quote }}
         offsetResetPolicy: {{ $trigger.offsetResetPolicy | default "earliest" }}
@@ -51,9 +51,7 @@ spec:
         name: {{ $componentName }}-auth-{{ $i }}
       {{ end -}}
       metadata:
-        {{- if $trigger.activationThreshold }}
-        activationThreshold: {{ $trigger.activationThreshold | quote }}
-        {{- end }}
+        activationQueueLength: {{ $trigger.activationQueueLength | default "0" | quote }}
         awsRegion: {{ $awsRegion | quote }}
         identityOwner: {{ $trigger.identityOwner | default "operator" | quote }}
         queueLength: {{ $trigger.queueLength | quote }}
