@@ -44,10 +44,6 @@ lifecycle:
 {{- $valuesFrom := merge $specificValuesFrom $globalValuesFrom -}}
 {{- if or $values $valuesFrom -}}
 env:
-  {{- range $name, $value := $values }}
-  - name: {{ $name }}
-    value: {{ $value | quote }}
-  {{- end -}}
   {{- range $name, $value := $valuesFrom }}
   - name: {{ $name }}
     valueFrom:
@@ -74,6 +70,10 @@ env:
         {{- end }}
         {{- end }}
       {{- end }}
+  {{- end -}}
+  {{- range $name, $value := $values }}
+  - name: {{ $name }}
+    value: {{ $value | quote }}
   {{- end -}}
 {{- end -}}
 {{- end -}}
