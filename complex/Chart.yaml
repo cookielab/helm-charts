@@ -8,10 +8,10 @@ kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 dependencies:
   - name: lib-gitlab
     version: "0.1.0"
-    repository: "https://helm.cookielab.dev"
+    repository: "file://../lib-gitlab"
   - name: lib-kubernetes
-    version: "0.2.0"
-    repository: "https://helm.cookielab.dev"
+    version: "0.4.0"
+    repository: "file://../lib-kubernetes"
   - name: lib-prometheus
     version: "0.1.7"
-    repository: "https://helm.cookielab.dev"
+    repository: "file://../lib-prometheus"
