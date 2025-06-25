@@ -876,7 +876,72 @@
     "envsValuesFrom": {
       "type": "object",
       "additionalProperties": {
-        "type": "string"
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": ["fieldRef"],
+                "properties": {
+                  "fieldRef": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": ["secretKeyRef"],
+                "properties": {
+                  "secretKeyRef": {
+                    "type": "object",
+                    "required": ["name", "key"],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": ["configMapKeyRef"],
+                "properties": {
+                  "configMapKeyRef": {
+                    "type": "object",
+                    "required": ["name", "key"],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        ]
       }
     },
     "envsFrom": {

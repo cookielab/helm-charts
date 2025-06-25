@@ -44,15 +44,36 @@ lifecycle:
 {{- $valuesFrom := merge $specificValuesFrom $globalValuesFrom -}}
 {{- if or $values $valuesFrom -}}
 env:
-  {{- range $name, $value := $values }}
-  - name: {{ $name }}
-    value: {{ $value | quote }}
-  {{- end -}}
   {{- range $name, $value := $valuesFrom }}
   - name: {{ $name }}
     valueFrom:
+      {{- if kindIs "string" $value }}
       fieldRef:
         fieldPath: {{ $value | quote }}
+      {{- else if kindIs "map" $value }}
+        {{- if hasKey $value "fieldRef" }}
+      fieldRef:
+        fieldPath: {{ $value.fieldRef | quote }}
+        {{- else if hasKey $value "secretKeyRef" }}
+      secretKeyRef:
+        name: {{ $value.secretKeyRef.name | quote }}
+        key: {{ $value.secretKeyRef.key | quote }}
+        {{- if hasKey $value.secretKeyRef "optional" }}
+        optional: {{ $value.secretKeyRef.optional }}
+        {{- end }}
+        {{- else if hasKey $value "configMapKeyRef" }}
+      configMapKeyRef:
+        name: {{ $value.configMapKeyRef.name | quote }}
+        key: {{ $value.configMapKeyRef.key | quote }}
+        {{- if hasKey $value.configMapKeyRef "optional" }}
+        optional: {{ $value.configMapKeyRef.optional }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+  {{- end -}}
+  {{- range $name, $value := $values }}
+  - name: {{ $name }}
+    value: {{ $value | quote }}
   {{- end -}}
 {{- end -}}
 {{- end -}}
