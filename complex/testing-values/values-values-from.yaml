@@ -38,6 +38,15 @@ global:
             name: app-config
             key: settings.json
             optional: true
+      from:
+        # Test case for envFrom with secretRef (loads all keys from secret)
+        secrets:
+          - global-app-secret
+          - shared-database-secret
+        # Test case for envFrom with configMapRef (loads all keys from configmap)
+        configMaps:
+          - global-app-config
+          - shared-settings-config
 
 components:
   api:
