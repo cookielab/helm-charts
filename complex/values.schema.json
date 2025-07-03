@@ -1582,6 +1582,9 @@
             "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
             "type": "string"
           },
+          "nodeSelector": {
+            "$ref": "#/definitions/nodeSelector"
+          },
           "service": {
             "type": "object",
             "properties": {
