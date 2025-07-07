@@ -1,0 +1,64 @@
+{{/*
+Generate example based on available features
+*/}}
+{{- define "chart.exampleBasic" -}}
+global:
+  container:
+    image:
+      repository: myapp
+      tag: "latest"
+{{- end }}
+
+{{/*
+Generate ConfigMap example if configMaps are supported
+*/}}
+{{- define "chart.exampleConfigMap" -}}
+global:
+  configMaps:
+    app-config:
+      data:
+        DATABASE_URL: "postgresql://localhost:5432/myapp"
+        APP_NAME: "my-application"
+  container:
+    envs:
+      from:
+        configMaps:
+          - app-config
+{{- end }}
+
+{{/*
+Generate VolumeMount example
+*/}}
+{{- define "chart.exampleVolumeMount" -}}
+global:
+  configMaps:
+    nginx-config:
+      data:
+        nginx.conf: |
+          server {
+            listen 80;
+            server_name myapp.local;
+            location / {
+              return 200 'Hello World!';
+            }
+          }
+  volumeMounts:
+    configMaps:
+      - name: config-volume
+        configMapName: nginx-config
+        mountPath: /etc/nginx/conf.d
+        subPath: nginx.conf
+        readOnly: true
+{{- end }}
+
+{{/*
+List all available testing files
+*/}}
+{{- define "chart.availableExamples" -}}
+- [`values-minimal.yaml`](testing-values/values-minimal.yaml) - Basic HTTP service
+- [`values-configmap.yaml`](testing-values/values-configmap.yaml) - ConfigMap integration
+- [`values-volume-mounts.yaml`](testing-values/values-volume-mounts.yaml) - Volume mount examples
+- [`values-consumer.yaml`](testing-values/values-consumer.yaml) - Consumer workloads
+- [`values-cronjob.yaml`](testing-values/values-cronjob.yaml) - Scheduled jobs
+- [`values-hpa.yaml`](testing-values/values-hpa.yaml) - Auto-scaling configuration
+{{- end }} 

@@ -1,0 +1,193 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+## Features
+
+The **complex** Helm chart provides a comprehensive solution for deploying containerized applications with:
+
+- **ConfigMap integration**: Environment variables and file mounting from ConfigMaps
+- **Secret integration**: Environment variables and file mounting from Secrets  
+- **Volume mounts**: Mount ConfigMaps and Secrets as files with custom paths
+- **Consumer workloads**: Support for consumer-type deployments
+- **CronJob support**: Scheduled job execution
+- **Enterprise features**: Immutable ConfigMaps, custom labels/annotations
+- **GitLab integration**: Built-in GitLab CI/CD support via lib-gitlab dependency
+- **Kubernetes best practices**: Following cloud-native patterns via lib-kubernetes
+- **Prometheus monitoring**: Integrated metrics and alerting via lib-prometheus
+
+## Component Types
+
+The chart supports multiple component types for different workload patterns:
+
+### 1. HTTP Components (`type: http`)
+Web services and APIs with HTTP endpoints.
+
+**Creates**: Deployment, Service, optionally Ingress, HPA, Target Groups
+
+### 2. Consumer Components (`type: consumer`)
+Background workers that process messages from queues.
+
+**Creates**: Deployment, optionally KEDA ScaledObject for auto-scaling
+
+### 3. CronJob Components (`type: cronjob`)
+Scheduled tasks that run periodically.
+
+**Creates**: CronJob
+
+### 4. Pre-Job Components (`type: pre-job`)
+One-time jobs that run before the main application (e.g., migrations).
+
+**Creates**: Job
+
+## Configuration Structure
+
+### Global vs Component-Specific Configuration
+
+The chart uses a **two-level configuration system**:
+
+1. **Global**: Default settings applied to all components
+2. **Component-specific**: Overrides for individual components
+
+**Component-specific settings always override global settings.**
+
+### Environment Variables Priority
+
+Environment variables are merged in the following order (later overrides earlier):
+
+1. **Global values** (`global.container.envs.values`)
+2. **Component-specific values** (`components.<name>.envs.values`) 
+3. **Global envFrom** (`global.container.envs.from.configMaps/secrets`)
+4. **Component-specific envFrom** (`components.<name>.envs.from.configMaps/secrets`)
+
+#### Priority Examples
+
+**Example 1 - Component overrides Global:**
+```yaml
+global:
+  container:
+    envs:
+      values:
+        DATABASE_URL: "postgresql://global-db:5432/app"
+        LOG_LEVEL: "info"
+
+components:
+  api:
+    envs:
+      values:
+        DATABASE_URL: "postgresql://api-db:5432/api"  # Component value takes precedence
+        API_KEY: "api-specific-key"
+```
+
+**Result for `api` component:**
+- `DATABASE_URL=postgresql://api-db:5432/api` ← Component-specific value
+- `LOG_LEVEL=info` ← Inherited from global configuration
+- `API_KEY=api-specific-key` ← Component-specific value
+
+**Example 2 - envFrom vs hardcoded values:**
+```yaml
+# ConfigMap contains: API_KEY=from-configmap
+global:
+  container:
+    envs:
+      values:
+        API_KEY: "hardcoded-value"  # Applied first
+      from:
+        configMaps:
+          - app-config              # Overrides hardcoded values
+
+components:
+  api:
+    envs:
+      values:
+        API_KEY: "component-hardcoded"  # Has highest priority
+```
+
+**Result for `api` component:**
+- `API_KEY=component-hardcoded` ← Component-specific value has highest priority
+
+**Priority order (highest to lowest):**
+1. **Component hardcoded values** (`components.<name>.envs.values`)
+2. **Component envFrom** (`components.<name>.envs.from.*`)
+3. **Global envFrom** (`global.container.envs.from.*`)
+4. **Global hardcoded values** (`global.container.envs.values`)
+
+## Installation
+
+```bash
+helm repo add cookielab https://helm.cookielab.dev
+helm install my-app cookielab/{{ template "chart.name" . }}
+```
+
+## Usage Examples
+
+### Basic Deployment
+```yaml
+global:
+  container:
+    image:
+      repository: myapp
+      tag: "latest"
+```
+
+### With ConfigMap Environment Variables
+```yaml
+global:
+  configMaps:
+    app-config:
+      data:
+        DATABASE_URL: "postgresql://localhost:5432/myapp"
+        APP_NAME: "my-application"
+  container:
+    envs:
+      from:
+        configMaps:
+          - app-config
+```
+
+### With Volume Mounts
+```yaml
+global:
+  configMaps:
+    nginx-config:
+      data:
+        nginx.conf: |
+          server {
+            listen 80;
+            server_name myapp.local;
+            location / {
+              return 200 'Hello World!';
+            }
+          }
+  volumeMounts:
+    configMaps:
+      - name: config-volume
+        configMapName: nginx-config
+        mountPath: /etc/nginx/conf.d
+        subPath: nginx.conf
+        readOnly: true
+```
+
+## Complete Examples
+
+The following complete configuration examples are available in the `testing-values/` directory:
+
+- [`values-minimal.yaml`](testing-values/values-minimal.yaml) - Basic HTTP service
+- [`values-configmap.yaml`](testing-values/values-configmap.yaml) - ConfigMap integration
+- [`values-volume-mounts.yaml`](testing-values/values-volume-mounts.yaml) - Volume mount examples
+- [`values-consumer.yaml`](testing-values/values-consumer.yaml) - Consumer workloads
+- [`values-cronjob.yaml`](testing-values/values-cronjob.yaml) - Scheduled jobs
+- [`values-hpa.yaml`](testing-values/values-hpa.yaml) - Auto-scaling configuration
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }} 
