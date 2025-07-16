@@ -24,6 +24,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Using version from complex/Chart.yaml: $VERSION"
       
+      - name: Get AWS account ID
+        id: get_aws_account
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          echo "Using AWS account ID: $ACCOUNT_ID"
+      
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
@@ -32,7 +39,7 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-helm-deployment
+          role-to-assume: arn:aws:iam::${{ steps.get_aws_account.outputs.account_id }}:role/github-actions-helm-deployment
           role-session-name: GitHubActions-HelmRelease
           aws-region: ${{ env.AWS_REGION }}
       
@@ -48,10 +55,8 @@ jobs:
         run: |
           echo "Downloading existing S3 content to preserve other charts..."
           mkdir -p public/
-          # Download existing content (includes frontend, backend from GitLab)
-          aws s3 sync s3://${{ vars.S3_BUCKET }}/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
+          aws s3 sync s3://dev-helm/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
           
-          # Ensure robots.txt exists
           echo -e 'User-Agent: *\nDisallow: /' > ./public/robots.txt
           
           echo "Current content in public/:"
@@ -88,15 +93,19 @@ jobs:
       - name: Upload to S3 with public-read ACL
         run: |
           echo "Uploading all content to S3..."
-          aws s3 sync --acl public-read public/ s3://${{ vars.S3_BUCKET }}/
+          aws s3 sync --acl public-read public/ s3://dev-helm/
           
           echo "S3 upload completed successfully"
       
       - name: Invalidate CloudFront distribution
         run: |
           echo "Invalidating CloudFront cache..."
+          # Get CloudFront distribution ID for cookielab_dev_helm
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?contains(@, 'helm.cookielab.dev')]].Id" --output text)
+          echo "Found CloudFront distribution ID: $DISTRIBUTION_ID"
+          
           aws cloudfront create-invalidation \
-            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id $DISTRIBUTION_ID \
             --paths "/*"
           
           echo "CloudFront invalidation initiated" 
