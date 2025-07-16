@@ -1,0 +1,33 @@
+# Infrastructure alerts example
+# Generic alerts not tied to specific applications
+
+global:
+  alertLabels:
+    severity: warning
+    team: platform
+    environment: production
+  metadata:
+    partOf: infrastructure
+
+alertRules:
+  - alertName: PodOOMKilled
+    expression: "increase(kube_pod_container_status_restarts_total{reason='OOMKilled'}[10m]) > 0"
+    for: 0m
+    description: "Pod was killed due to OOM (Out of Memory)"
+    summary: "Pod was OOMKilled in namespace"
+    labels:
+      severity: critical
+      
+  - alertName: NamespaceHighMemoryUsage
+    expression: "sum(container_memory_working_set_bytes{container!='POD'}) by (namespace) / sum(container_spec_memory_limit_bytes{container!='POD'}) by (namespace) > 0.8"
+    for: 5m
+    description: "Namespace memory usage is above 80%"
+    summary: "Namespace memory usage is high"
+    
+  - alertName: NodeDiskSpaceRunningOut
+    expression: "(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) > 0.85"
+    for: 5m
+    description: "Node disk space is running out"
+    summary: "Node disk usage is above 85%"
+    labels:
+      severity: critical 
