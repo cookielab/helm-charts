@@ -1,0 +1,5 @@
+apiVersion: v2
+name: lib-gitlab
+description: Annotations for GitLab
+type: library
+version: 0.1.0
