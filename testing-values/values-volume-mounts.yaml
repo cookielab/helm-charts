@@ -1,0 +1,66 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+    volumeMounts:
+      configMaps:
+        - name: config-volume
+          configMapName: app-config
+          mountPath: /app/config
+          readOnly: true
+        - name: shared-config-volume
+          configMapName: shared-config
+          mountPath: /app/shared
+          readOnly: true
+          subPath: app.env
+      secrets:
+        - name: secret-volume
+          secretName: app-secret
+          mountPath: /app/secrets
+          readOnly: true
+
+configMaps:
+  app-config:
+    data:
+      config.json: |
+        {
+          "database": {
+            "host": "postgresql://localhost:5432/myapp",
+            "pool_size": 10
+          },
+          "redis": {
+            "host": "redis://localhost:6379"
+          }
+        }
+      app.properties: |
+        log.level=info
+        max.connections=100
+  shared-config:
+    data:
+      app.env: |
+        FEATURE_FLAG_A=true
+        FEATURE_FLAG_B=false
+        APP_ENV=testing
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake 

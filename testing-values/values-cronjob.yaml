@@ -1,0 +1,13 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  cj-bar:
+    type: cronjob
+    serviceAccountName: deployer2
+    schedule: '10/* * * *'
+    command:
+      - bin/run-cron

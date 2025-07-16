@@ -1,0 +1,32 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroups:
+      - distinguisher: private
+        arn: "arn:fake"
+        securityGroupIds:
+          - sg-fake
+      - distinguisher: public
+        arn: "arn:fake"
+        securityGroupIds:
+          - sg-fake

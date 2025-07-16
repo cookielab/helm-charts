@@ -1,0 +1,32 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if eq $component.type "pre-job" -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+    {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 8 | trim }}
+        {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 8 | trim }}
+      annotations:
+        {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 8 | trim }}
+        {{- if $.Values.global.metadata.gitlab }}
+        {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
+        {{- end }}
+    spec:
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels "restartPolicy" "Never" "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets) | indent 6 | trim }}
+
+{{ end -}}
+{{- end -}}

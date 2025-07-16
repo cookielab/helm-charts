@@ -1,0 +1,28 @@
+{{- range $componentName, $component := .Values.components -}}
+{{- if $component.pdb -}}
+
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+{{- $extraMatchLabels := $component.pdb.extraMatchLabels | default (dict) -}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}-pdb
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+spec:
+  {{- if $component.pdb.minAvailable }}
+  minAvailable: {{ $component.pdb.minAvailable }}
+  {{- end }}
+  {{- if $component.pdb.maxUnavailable }}
+  maxUnavailable: {{ $component.pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: {{ $componentName }}
+      app.kubernetes.io/name: {{ $.Chart.Name }}
+      {{- range $key, $value := $extraMatchLabels }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+  {{- end }}
+  {{- end }}

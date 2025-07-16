@@ -1,0 +1,38 @@
+{{- $labels := default (dict) .Values.global.alertLabels -}}
+{{- $env := default "default-env" (index $labels "environment") -}}
+{{- $project := default "default-project" (index .Values.global.metadata "partOf") -}}
+{{- range $componentName, $component := .Values.components -}}
+{{- if or $component.alertRules $component.alertTemplates -}}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ $.Release.Name }}
+  labels:
+    {{- range $key, $value := $labels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  groups:
+  - name: {{ $.Release.Name }}
+    rules:
+      {{- if $component.alertRules }}
+      {{ include "cookielab.prometheus.alert_rules" (dict "alertRules" $component.alertRules "alertLabels" $labels "namespace" $.Release.Namespace "application" $.Release.Name "component" $componentName) | indent 6 | trim }}
+      {{- end }}
+      {{- if $component.alertTemplates }}
+      {{- range $alertName, $alertTemplate := $component.alertTemplates }}
+      - alert: {{ $alertName }}-{{ $env }}
+        expr: |
+          {{- $template := $alertTemplate.expression }}
+          {{- $template | replace "{{ .Environment }}" $env | replace "{{ .Project }}" $project | nindent 12 }}
+        for: {{ $alertTemplate.for }}
+        description: {{ $alertTemplate.description | quote }}
+        summary: {{ $alertTemplate.summary | quote }}
+        labels:
+          {{- range $key, $value := $labels }}
+          {{ $key }}: {{ $value }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
