@@ -17,6 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Get version from Chart.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' complex/Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version from complex/Chart.yaml: $VERSION"
+      
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
