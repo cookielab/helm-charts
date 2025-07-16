@@ -1,0 +1,1806 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "definitions": {
+    "kedaTriggerAwsSqsQueue": {
+      "type": "object",
+      "required": ["queueURLFromEnv"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "aws-sqs-queue"
+        },
+        "activationQueueLength": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        },
+        "queueLength": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "default": 1
+        },
+        "queueURLFromEnv": {
+          "type": "string"
+        },
+        "authName": {
+          "type": "string"
+        },
+        "identityOwner": {
+          "type": "string",
+          "default": "operator"
+        },
+        "awsRegion": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+     },
+     "kedaTriggerKafka": {
+      "type": "object",
+      "required": ["bootstrapServers","consumerGroup"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "kafka"
+        },
+        "bootstrapServers": {
+          "type": "string"
+        },
+        "offsetResetPolicy": {
+          "type": "string",
+          "enum": ["earliest", "latest"],
+          "default": "earliest"
+        },
+        "consumerGroup": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "lagThreshold": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 10
+        },
+        "activationLagThreshold": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        },
+        "identityOwner": {
+          "type": "string",
+          "default": "operator"
+        },
+        "awsRegion": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "kedaTriggerCron": {
+      "type": "object",
+      "required": ["start","end","desiredReplicas"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "cron"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "desiredReplicas": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "livenessProbe": {
+      "description": "Periodic probe of container liveness. Container will be restarted if the probe fails. Cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+      "type": "object",
+      "properties": {
+        "exec": {
+          "description": "Exec specifies the action to take.",
+          "type": "object",
+          "properties": {
+            "command": {
+              "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "failureThreshold": {
+          "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "grpc": {
+          "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "port": {
+              "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
+              "type": "integer",
+              "format": "int32"
+            },
+            "service": {
+              "description": "Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). \n If this is not specified, the default behavior is defined by gRPC.",
+              "type": "string"
+            }
+          }
+        },
+        "httpGet": {
+          "description": "HTTPGet specifies the http request to perform.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
+              "type": "string"
+            },
+            "httpHeaders": {
+              "description": "Custom headers to set in the request. HTTP allows repeated headers.",
+              "type": "array",
+              "items": {
+                "description": "HTTPHeader describes a custom header to be used in HTTP probes",
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "description": "The header field name",
+                    "type": "string"
+                  },
+                  "value": {
+                    "description": "The header field value",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "path": {
+              "description": "Path to access on the HTTP server.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Name or number of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            },
+            "scheme": {
+              "description": "Scheme to use for connecting to the host. Defaults to HTTP.",
+              "type": "string"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "description": "Number of seconds after the container has started before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "periodSeconds": {
+          "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "successThreshold": {
+          "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "tcpSocket": {
+          "description": "TCPSocket specifies an action involving a TCP port.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Optional: Host name to connect to, defaults to the pod IP.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Number or name of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            }
+          }
+        },
+        "terminationGracePeriodSeconds": {
+          "description": "Optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is a beta field and requires enabling ProbeTerminationGracePeriod feature gate. Minimum value is 1. spec.terminationGracePeriodSeconds is used if unset.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "timeoutSeconds": {
+          "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "enableServiceLinks": {
+          "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
+          "type": "boolean"
+        }
+      }
+    },
+    "name": {
+      "description": "Name of the container specified as a DNS_LABEL. Each container in a pod must have a unique name (DNS_LABEL). Cannot be updated.",
+      "type": "string"
+    },
+    "ports": {
+      "description": "List of ports to expose from the container. Exposing a port here gives the system additional information about the network connections a container uses, but is primarily informational. Not specifying a port here DOES NOT prevent that port from being exposed. Any port which is listening on the default \"0.0.0.0\" address inside a container will be accessible from the network. Cannot be updated.",
+      "type": "array",
+      "items": {
+        "description": "ContainerPort represents a network port in a single container.",
+        "type": "object",
+        "required": ["containerPort"],
+        "properties": {
+          "containerPort": {
+            "description": "Number of port to expose on the pod's IP address. This must be a valid port number, 0 < x < 65536.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "hostIP": {
+            "description": "What host IP to bind the external port to.",
+            "type": "string"
+          },
+          "hostPort": {
+            "description": "Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "description": "If specified, this must be an IANA_SVC_NAME and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.",
+            "type": "string"
+          },
+          "protocol": {
+            "description": "Protocol for port. Must be UDP, TCP, or SCTP. Defaults to \"TCP\".",
+            "type": "string"
+          }
+        }
+      },
+      "x-kubernetes-list-map-keys": ["containerPort", "protocol"],
+      "x-kubernetes-list-type": "map"
+    },
+    "readinessProbe": {
+      "description": "Periodic probe of container service readiness. Container will be removed from service endpoints if the probe fails. Cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+      "type": "object",
+      "properties": {
+        "exec": {
+          "description": "Exec specifies the action to take.",
+          "type": "object",
+          "properties": {
+            "command": {
+              "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "failureThreshold": {
+          "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "grpc": {
+          "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "port": {
+              "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
+              "type": "integer",
+              "format": "int32"
+            },
+            "service": {
+              "description": "Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). \n If this is not specified, the default behavior is defined by gRPC.",
+              "type": "string"
+            }
+          }
+        },
+        "httpGet": {
+          "description": "HTTPGet specifies the http request to perform.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
+              "type": "string"
+            },
+            "httpHeaders": {
+              "description": "Custom headers to set in the request. HTTP allows repeated headers.",
+              "type": "array",
+              "items": {
+                "description": "HTTPHeader describes a custom header to be used in HTTP probes",
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "description": "The header field name",
+                    "type": "string"
+                  },
+                  "value": {
+                    "description": "The header field value",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "path": {
+              "description": "Path to access on the HTTP server.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Name or number of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            },
+            "scheme": {
+              "description": "Scheme to use for connecting to the host. Defaults to HTTP.",
+              "type": "string"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "description": "Number of seconds after the container has started before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "periodSeconds": {
+          "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "successThreshold": {
+          "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "tcpSocket": {
+          "description": "TCPSocket specifies an action involving a TCP port.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Optional: Host name to connect to, defaults to the pod IP.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Number or name of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            }
+          }
+        },
+        "terminationGracePeriodSeconds": {
+          "description": "Optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is a beta field and requires enabling ProbeTerminationGracePeriod feature gate. Minimum value is 1. spec.terminationGracePeriodSeconds is used if unset.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "timeoutSeconds": {
+          "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "enableServiceLinks": {
+          "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
+          "type": "boolean"
+        }
+      }
+    },
+    "startupProbe": {
+      "description": "StartupProbe indicates that the Pod has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a Pod's lifecycle, when it might take a long time to load data or warm a cache, than during steady-state operation. This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+      "type": "object",
+      "properties": {
+        "exec": {
+          "description": "Exec specifies the action to take.",
+          "type": "object",
+          "properties": {
+            "command": {
+              "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "failureThreshold": {
+          "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "grpc": {
+          "description": "GRPC specifies an action involving a GRPC port. This is an alpha field and requires enabling GRPCContainerProbe feature gate.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "port": {
+              "description": "Port number of the gRPC service. Number must be in the range 1 to 65535.",
+              "type": "integer",
+              "format": "int32"
+            },
+            "service": {
+              "description": "Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). \n If this is not specified, the default behavior is defined by gRPC.",
+              "type": "string"
+            }
+          }
+        },
+        "httpGet": {
+          "description": "HTTPGet specifies the http request to perform.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead.",
+              "type": "string"
+            },
+            "httpHeaders": {
+              "description": "Custom headers to set in the request. HTTP allows repeated headers.",
+              "type": "array",
+              "items": {
+                "description": "HTTPHeader describes a custom header to be used in HTTP probes",
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "description": "The header field name",
+                    "type": "string"
+                  },
+                  "value": {
+                    "description": "The header field value",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "path": {
+              "description": "Path to access on the HTTP server.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Name or number of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            },
+            "scheme": {
+              "description": "Scheme to use for connecting to the host. Defaults to HTTP.",
+              "type": "string"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "description": "Number of seconds after the container has started before liveness probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "periodSeconds": {
+          "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "successThreshold": {
+          "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup. Minimum value is 1.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "tcpSocket": {
+          "description": "TCPSocket specifies an action involving a TCP port.",
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "host": {
+              "description": "Optional: Host name to connect to, defaults to the pod IP.",
+              "type": "string"
+            },
+            "port": {
+              "description": "Number or name of the port to access on the container. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.",
+              "x-kubernetes-int-or-string": true
+            }
+          }
+        },
+        "terminationGracePeriodSeconds": {
+          "description": "Optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is a beta field and requires enabling ProbeTerminationGracePeriod feature gate. Minimum value is 1. spec.terminationGracePeriodSeconds is used if unset.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "timeoutSeconds": {
+          "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+          "type": "integer",
+          "format": "int32"
+        },
+        "enableServiceLinks": {
+          "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
+          "type": "boolean"
+        }
+      }
+    },
+    "nodeSelector": {
+      "description": "NodeSelector defines which nodes pods should be scheduling on.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "command": {
+      "description": "Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Variable references $(VAR_NAME) are expanded using the container's environment. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. \"$$(VAR_NAME)\" will produce the string literal \"$(VAR_NAME)\". Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "imagePullPolicy": {
+      "description": "Image pull policy. One of Always, Never, IfNotPresent. Defaults to Always if :latest tag is specified, or IfNotPresent otherwise. Cannot be updated. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images\n\nPossible enum values:\n - `\"Always\"` means that kubelet always attempts to pull the latest image. Container will fail If the pull fails.\n - `\"IfNotPresent\"` means that kubelet pulls if the image isn't present on disk. Container will fail if the image isn't present and the pull fails.\n - `\"Never\"` means that kubelet never pulls an image, but only uses a local image. Container will fail if the image isn't present",
+      "type": "string",
+      "enum": ["Always", "IfNotPresent", "Never"]
+    },
+    "restartPolicy": {
+      "description": "Restart policy for all containers within the pod. One of Always, OnFailure, Never. Default to Always. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy\n\nPossible enum values:\n - `\"Always\"`\n - `\"Never\"`\n - `\"OnFailure\"`",
+      "type": "string",
+      "enum": ["Always", "Never", "OnFailure"]
+    },
+    "rollingUpdate": {
+      "description": "Spec to control the desired behavior of rolling update.",
+      "properties": {
+        "maxSurge": {
+          "type": "string",
+          "format": "int-or-string",
+          "description": "The maximum number of pods that can be scheduled above the desired number of pods. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%). This can not be 0 if MaxUnavailable is 0. Absolute number is calculated from percentage by rounding up. Defaults to 25%. Example: when this is set to 30%, the new ReplicaSet can be scaled up immediately when the rolling update starts, such that the total number of old and new pods do not exceed 130% of desired pods. Once old pods have been killed, new ReplicaSet can be scaled up further, ensuring that total number of pods running at any time during the update is at most 130% of desired pods.",
+          "default": "100%"
+        },
+        "maxUnavailable": {
+          "type": "string",
+          "format": "int-or-string",
+          "description": "The maximum number of pods that can be unavailable during the update. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%). Absolute number is calculated from percentage by rounding down. This can not be 0 if MaxSurge is 0. Defaults to 25%. Example: when this is set to 30%, the old ReplicaSet can be scaled down to 70% of desired pods immediately when the rolling update starts. Once new pods are ready, old ReplicaSet can be scaled down further, followed by scaling up the new ReplicaSet, ensuring that the total number of pods available at all times during the update is at least 70% of desired pods.",
+          "default": "0%"
+        }
+      },
+      "type": "object"
+    },
+    "resourceUnit": {
+      "description": "Limits/Requests describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "type": ["string", "number"],
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
+        }
+      ]
+    },
+    "resourceObject": {
+      "type": "object",
+      "properties": {
+        "cpu": {
+          "$ref": "#/definitions/resourceUnit"
+        },
+        "memory": {
+          "$ref": "#/definitions/resourceUnit"
+        },
+        "ephemeralStorage": {
+          "$ref": "#/definitions/resourceUnit"
+        }
+      },
+      "required": ["cpu", "memory", "ephemeralStorage"],
+      "additionalProperties": false
+    },
+    "resources": {
+      "description": "Compute Resources required by this container. Cannot be updated. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "type": "object",
+      "properties": {
+        "limits": {
+          "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+          "$ref": "#/definitions/resourceObject"
+        },
+        "requests": {
+          "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+          "$ref": "#/definitions/resourceObject"
+        }
+      },
+      "required": ["limits", "requests"],
+      "additionalProperties": false
+    },
+    "securityContext": {
+      "description": "SecurityContext defines the security options the container should be run with. If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext. More info: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+      "type": "object",
+      "properties": {
+        "allowPrivilegeEscalation": {
+          "description": "AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process. AllowPrivilegeEscalation is true always when the container is: 1) run as Privileged 2) has CAP_SYS_ADMIN Note that this field cannot be set when spec.os.name is windows.",
+          "type": "boolean"
+        },
+        "capabilities": {
+          "description": "The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "object",
+          "properties": {
+            "add": {
+              "description": "Added capabilities",
+              "type": "array",
+              "items": {
+                "description": "Capability represent POSIX capabilities type",
+                "type": "string"
+              }
+            },
+            "drop": {
+              "description": "Removed capabilities",
+              "type": "array",
+              "items": {
+                "description": "Capability represent POSIX capabilities type",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "privileged": {
+          "description": "Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "boolean"
+        },
+        "procMount": {
+          "description": "procMount denotes the type of proc mount to use for the containers. The default is DefaultProcMount which uses the container runtime defaults for readonly paths and masked paths. This requires the ProcMountType feature flag to be enabled. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "string"
+        },
+        "readOnlyRootFilesystem": {
+          "description": "Whether this container has a read-only root filesystem. Default is false. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "boolean"
+        },
+        "runAsGroup": {
+          "description": "The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "runAsNonRoot": {
+          "description": "Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "seLinuxOptions": {
+          "description": "The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "Level is SELinux level label that applies to the container.",
+              "type": "string"
+            },
+            "role": {
+              "description": "Role is a SELinux role label that applies to the container.",
+              "type": "string"
+            },
+            "type": {
+              "description": "Type is a SELinux type label that applies to the container.",
+              "type": "string"
+            },
+            "user": {
+              "description": "User is a SELinux user label that applies to the container.",
+              "type": "string"
+            }
+          }
+        },
+        "seccompProfile": {
+          "description": "The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options. Note that this field cannot be set when spec.os.name is windows.",
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "localhostProfile": {
+              "description": "localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location. Must only be set if type is \"Localhost\".",
+              "type": "string"
+            },
+            "type": {
+              "description": "type indicates which kind of seccomp profile will be applied. Valid options are: \n Localhost - a profile defined in a file on the node should be used. RuntimeDefault - the container runtime default profile should be used. Unconfined - no profile should be applied.",
+              "type": "string"
+            }
+          }
+        },
+        "windowsOptions": {
+          "description": "The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is linux.",
+          "type": "object",
+          "properties": {
+            "gmsaCredentialSpec": {
+              "description": "GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.",
+              "type": "string"
+            },
+            "gmsaCredentialSpecName": {
+              "description": "GMSACredentialSpecName is the name of the GMSA credential spec to use.",
+              "type": "string"
+            },
+            "hostProcess": {
+              "description": "HostProcess determines if a container should be run as a 'Host Process' container. This field is alpha-level and will only be honored by components that enable the WindowsHostProcessContainers feature flag. Setting this field without the feature flag will result in errors when validating the Pod. All of a Pod's containers must have the same effective HostProcess value (it is not allowed to have a mix of HostProcess containers and non-HostProcess containers).  In addition, if HostProcess is true then HostNetwork must also be set to true.",
+              "type": "boolean"
+            },
+            "runAsUserName": {
+              "description": "The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "recordRules": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "alertRules": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "alertTemplates": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "instance": {
+          "type": "string"
+        },
+        "whenUnsatisfiable": {
+          "type": "string"
+        },
+        "maxSkew": {
+          "type": "integer"
+        },
+        "partOf": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "gitlab": {
+          "type": "object",
+          "properties": {
+            "app": {
+              "type": "string"
+            },
+            "env": {
+              "type": "string"
+            }
+          },
+          "anyOf": [
+            {},
+            {
+              "required": ["app", "env"]
+            }
+          ]
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "livenessProbe": {
+          "$ref": "#/definitions/livenessProbe"
+        },
+        "readinessProbe": {
+          "$ref": "#/definitions/readinessProbe"
+        },
+        "startupProbe": {
+          "$ref": "#/definitions/startupProbe"
+        }
+      },
+      "additionalProperties": false
+    },
+    "envsValues": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "envsValuesFrom": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": ["fieldRef"],
+                "properties": {
+                  "fieldRef": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": ["secretKeyRef"],
+                "properties": {
+                  "secretKeyRef": {
+                    "type": "object",
+                    "required": ["name", "key"],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": ["configMapKeyRef"],
+                "properties": {
+                  "configMapKeyRef": {
+                    "type": "object",
+                    "required": ["name", "key"],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "envsFrom": {
+      "type": "object",
+      "properties": {
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "configMaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "container": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "$ref": "#/definitions/imagePullPolicy"
+            }
+          },
+          "required": ["repository", "tag"],
+          "additionalProperties": false
+        },
+        "command": {
+          "$ref": "#/definitions/command"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "envs": {
+          "type": "object",
+          "properties": {
+            "values": {
+              "$ref": "#/definitions/envsValues"
+            },
+            "valuesFrom": {
+              "$ref": "#/definitions/envsValuesFrom"
+            },
+            "from": {
+              "$ref": "#/definitions/envsFrom"
+            }
+          },
+          "additionalProperties": false
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "probes": {
+          "$ref": "#/definitions/probes"
+        },
+        "volumeMounts": {
+          "$ref": "#/definitions/volumeMounts"
+        }
+      },
+      "required": ["image"],
+      "additionalProperties": false
+    },
+    "pod": {
+      "type": "object",
+      "properties": {
+        "initContainers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/container"
+          }
+        },
+        "containers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/container"
+          },
+          "minimum": 1
+        },
+        "restartPolicy": {
+          "$ref": "#/definitions/restartPolicy"
+        },
+        "terminationGracePeriodSeconds": {
+          "description": "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. Defaults to 30 seconds.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "enableServiceLinks": {
+          "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
+          "type": "boolean"
+        },
+        "serviceAccountName": {
+          "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+          "type": "string"
+        },
+        "nodeSelector": {
+          "$ref": "#/definitions/nodeSelector"
+        }
+      },
+      "additionalProperties": false
+    },
+    "volumeMounts": {
+      "type": "object",
+      "properties": {
+        "configMaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "configMapName": {"type": "string"},
+              "mountPath": {"type": "string"},
+              "readOnly": {"type": "boolean", "default": true},
+              "subPath": {"type": "string"}
+            },
+            "required": ["name", "configMapName", "mountPath"]
+          }
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "secretName": {"type": "string"},
+              "mountPath": {"type": "string"},
+              "readOnly": {"type": "boolean", "default": true},
+              "subPath": {"type": "string"}
+            },
+            "required": ["name", "secretName", "mountPath"]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "lib-gitlab": {
+      "type": "object"
+    },
+    "lib-kubernetes": {
+      "type": "object"
+    },
+    "lib-prometheus": {
+      "type": "object"
+    },
+    "global": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/metadata"
+        },
+        "prometheus": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "port": {
+              "type": "string"
+            },
+            "scrape": {
+              "type": "string"
+            }
+          }
+        },
+        "serviceAccountName": {
+          "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+          "type": "string"
+        },
+        "alertLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "container": {
+          "type": "object",
+          "properties": {
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "$ref": "#/definitions/imagePullPolicy"
+                }
+              },
+              "required": ["repository", "tag"],
+              "additionalProperties": false
+            },
+            "resources": {
+              "$ref": "#/definitions/resources"
+            },
+            "envs": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "$ref": "#/definitions/envsValues"
+                },
+                "valuesFrom": {
+                  "$ref": "#/definitions/envsValuesFrom"
+                },
+                "from": {
+                  "$ref": "#/definitions/envsFrom"
+                }
+              },
+              "additionalProperties": false
+            },
+            "volumeMounts": {
+              "$ref": "#/definitions/volumeMounts"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["image"]
+        },
+        "rollingUpdate": {
+          "$ref": "#/definitions/rollingUpdate"
+        },
+        "nodeSelector": {
+          "$ref": "#/definitions/nodeSelector"
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "description": "type determines how the Service is exposed. Defaults to ClusterIP. Valid options are ExternalName, ClusterIP, NodePort, and LoadBalancer. \"ClusterIP\" allocates a cluster-internal IP address for load-balancing to endpoints. Endpoints are determined by the selector or if that is not specified, by manual construction of an Endpoints object or EndpointSlice objects. If clusterIP is \"None\", no virtual IP is allocated and the endpoints are published as a set of endpoints rather than a virtual IP. \"NodePort\" builds on ClusterIP and allocates a port on every node which routes to the same endpoints as the clusterIP. \"LoadBalancer\" builds on NodePort and creates an external load-balancer (if supported in the current cloud) which routes to the same endpoints as the clusterIP. \"ExternalName\" aliases this service to the specified externalName. Several other fields do not apply to ExternalName services. More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types\n\nPossible enum values:\n - `\"ClusterIP\"` means a service will only be accessible inside the cluster, via the cluster IP.\n - `\"ExternalName\"` means a service consists of only a reference to an external name that kubedns or equivalent will return as a CNAME record, with no exposing or proxying of any pods involved.\n - `\"LoadBalancer\"` means a service will be exposed via an external load balancer (if the cloud provider supports it), in addition to 'NodePort' type.\n - `\"NodePort\"` means a service will be exposed on one port of every node, in addition to 'ClusterIP' type.",
+              "type": "string",
+              "enum": ["ClusterIP", "LoadBalancer"]
+            }
+          }
+        },
+        "keda": {
+          "type": "object",
+          "properties": {
+            "awsRegion": {
+              "type": "string"
+            },
+            "authName": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "imagePullSecrets": {
+          "description": "List of references to secrets in the same namespace to use for pulling any images",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "configMaps": {
+      "type": "object",
+      "description": "ConfigMaps to be created",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "immutable": {
+            "type": "boolean",
+            "description": "If set to true, ensures that data stored in the ConfigMap cannot be updated"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Additional labels for the ConfigMap",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "description": "Additional annotations for the ConfigMap",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["data"],
+        "additionalProperties": false
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["pre-job", "http", "http-internal", "consumer", "cronjob"]
+          },
+          "tolerations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The taint key that the toleration applies to."
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "The operator signifies the relationship between the key and the value. Valid values are 'Exists' and 'Equal'. Defaults to 'Equal'."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The taint value the toleration matches to. If the operator is 'Exists', this field should be empty."
+                },
+                "effect": {
+                  "type": "string",
+                  "description": "Toleration effect to match. Empty means to tolerate all taint effects with the same key. Valid values are 'NoSchedule', 'PreferNoSchedule', and 'NoExecute'."
+                },
+                "tolerationSeconds": {
+                  "type": "integer",
+                  "description": "Period of time the toleration (which must be of effect 'NoExecute') tolerates the taint. Expressed in seconds. Defaults to null."
+                }
+              },
+              "required": ["key", "effect"]
+            }
+          },
+          "targetGroup": {
+            "type": "object",
+            "properties": {
+              "arn": {
+                "type": "string"
+              },
+              "securityGroupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "targetGroups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "distinguisher": {
+                  "type": "string",
+                  "description": "Distinguisher is the name of the target group. If not provided, the name will be the same as the component name."
+                },
+                "arn": {
+                  "type": "string"
+                },
+                "securityGroupIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "ingress": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "annotations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "string"
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "pathType": {
+                            "type": "string",
+                            "enum": [
+                              "Exact",
+                              "Prefix",
+                              "ImplementationSpecific"
+                            ]
+                          }
+                        },
+                        "required": ["path", "pathType"]
+                      }
+                    }
+                  },
+                  "required": ["host", "paths"]
+                }
+              },
+              "tls": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "secretName": {
+                      "type": "string"
+                    },
+                    "hosts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "vpa": {
+            "type": "object",
+            "description": "VPA is the configuration for VerticalPodAutoscaler.",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "updateMode": {
+                "type": "string",
+                "enum": ["Auto", "Off"]
+              },
+              "minCpu": {
+                "type": "string"
+              },
+              "maxCpu": {
+                "type": "string"
+              },
+              "minMemory": {
+                "type": "string"
+              },
+              "maxMemory": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "hpa": {
+            "type": "object",
+            "description": "HPA is the configuration for HorizontalPodAutoscaler.",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "minReplicas": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0
+              },
+              "maxReplicas": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0
+              },
+              "cpuThresholdPercent": {
+                "type": "number",
+                "format": "int32",
+                "minimum": 0,
+                "maximum": 99
+              },
+              "memThresholdPercent": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "maximum": 99
+              },
+              "scaleUp": {
+                "type": "object",
+                "properties": {
+                  "stabilizationWindowSeconds": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "default": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "scaleDown": {
+                "type": "object",
+                "properties": {
+                  "stabilizationWindowSeconds": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 300,
+                    "default": 300
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "anyOf": [
+              {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": ["maxReplicas"]
+              },
+              {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  },
+                  "maxReplicas": {
+                    "type": "null"
+                  },
+                  "cpuThresholdPercent": {
+                    "type": "null"
+                  },
+                  "memThresholdPercent": {
+                    "type": "null"
+                  }
+                }
+              }
+            ],
+            "additionalProperties": false
+          },
+          "image": {
+            "type": "object",
+            "properties": {
+              "repository": {
+                "type": "string"
+              },
+              "tag": {
+                "type": "string"
+              },
+              "pullPolicy": {
+                "$ref": "#/definitions/imagePullPolicy"
+              }
+            },
+            "required": ["repository", "tag"],
+            "additionalProperties": false
+          },
+          "resources": {
+            "$ref": "#/definitions/resources"
+          },
+          "rollingUpdate": {
+            "$ref": "#/definitions/rollingUpdate"
+          },
+          "envs": {
+            "type": "object",
+            "properties": {
+              "values": {
+                "$ref": "#/definitions/envsValues"
+              },
+              "valuesFrom": {
+                "$ref": "#/definitions/envsValuesFrom"
+              },
+              "from": {
+                "$ref": "#/definitions/envsFrom"
+              }
+            },
+            "additionalProperties": false
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "required": ["port"]
+            },
+            "minimum": 1
+          },
+          "securityContext": {
+            "$ref": "#/definitions/securityContext"
+          },
+          "probes": {
+            "$ref": "#/definitions/probes"
+          },
+          "replicas": {
+            "description": "Number of desired pods. This is a pointer to distinguish between explicit zero and not specified. Defaults to 1.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "progressDeadlineSeconds": {
+            "description": "The maximum time in seconds for a deployment to make progress before it is considered to be failed. The deployment controller will continue to process failed deployments and a condition with a ProgressDeadlineExceeded reason will be surfaced in the deployment status. Note that progress will not be estimated during the time a deployment is paused. Defaults to 600s.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "restartPolicy": {
+            "$ref": "#/definitions/restartPolicy"
+          },
+          "terminationGracePeriodSeconds": {
+            "description": "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. Defaults to 30 seconds.",
+            "type": "integer",
+            "format": "int64"
+          },
+          "enableServiceLinks": {
+            "description": "EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true.",
+            "type": "boolean"
+          },
+          "serviceAccountName": {
+            "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+            "type": "string"
+          },
+          "nodeSelector": {
+            "$ref": "#/definitions/nodeSelector"
+          },
+          "service": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "type determines how the Service is exposed. Defaults to ClusterIP. Valid options are ExternalName, ClusterIP, NodePort, and LoadBalancer. \"ClusterIP\" allocates a cluster-internal IP address for load-balancing to endpoints. Endpoints are determined by the selector or if that is not specified, by manual construction of an Endpoints object or EndpointSlice objects. If clusterIP is \"None\", no virtual IP is allocated and the endpoints are published as a set of endpoints rather than a virtual IP. \"NodePort\" builds on ClusterIP and allocates a port on every node which routes to the same endpoints as the clusterIP. \"LoadBalancer\" builds on NodePort and creates an external load-balancer (if supported in the current cloud) which routes to the same endpoints as the clusterIP. \"ExternalName\" aliases this service to the specified externalName. Several other fields do not apply to ExternalName services. More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types\n\nPossible enum values:\n - `\"ClusterIP\"` means a service will only be accessible inside the cluster, via the cluster IP.\n - `\"ExternalName\"` means a service consists of only a reference to an external name that kubedns or equivalent will return as a CNAME record, with no exposing or proxying of any pods involved.\n - `\"LoadBalancer\"` means a service will be exposed via an external load balancer (if the cloud provider supports it), in addition to 'NodePort' type.\n - `\"NodePort\"` means a service will be exposed on one port of every node, in addition to 'ClusterIP' type.",
+                "type": "string",
+                "enum": ["ClusterIP", "LoadBalancer"]
+              }
+            }
+          },
+          "alertRules": {
+            "$ref": "#/definitions/alertRules"
+          },
+          "alertTemplates": {
+            "$ref": "#/definitions/alertTemplates"
+          },
+          "pdb": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "maxUnavailable": {
+                      "type": "integer",
+                      "description": "Maximum number of pods that can be unavailable at any time."
+                    }
+                },
+                "required": ["maxUnavailable"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "minAvailable": {
+                    "type": "integer",
+                    "description": "Minimum number of pods that must be available at any time."
+                  }
+                },
+                "required": ["minAvailable"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "schedule": {
+            "description": "The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.",
+            "type": "string"
+          },
+          "suspend": {
+            "description": "This flag tells the controller to suspend subsequent executions, it does not apply to already started executions. Defaults to false.",
+            "type": "boolean"
+          },
+          "command": {
+            "description": "Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Variable references $(VAR_NAME) are expanded using the container's environment. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. \"$$(VAR_NAME)\" will produce the string literal \"$(VAR_NAME)\". Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keda": {
+            "type": "object",
+            "properties": {
+              "cooldownPeriod": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "default": 30
+              },
+              "minReplicaCount": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0,
+                "default": 0
+              },
+              "maxReplicaCount": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "default": 1
+              },
+              "pollingInterval": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1,
+                "default": 30
+              },
+              "triggers": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/kedaTriggerAwsSqsQueue"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerKafka"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerCron"
+                    }
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": []
+          },
+          "imagePullSecrets": {
+            "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "properties": {
+              "type": {
+                "const": "pre-job"
+              },
+              "replicas": {
+                "const": 1
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            },
+            "required": ["command"]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "http"
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            },
+            "required": ["ports", "probes"],
+            "anyOf": [
+              { "required": ["ingress"] },
+              { "required": ["targetGroup"] },
+              { "required": ["targetGroups"] }
+            ]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "http-internal"
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            },
+            "required": ["ports", "probes"]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "consumer"
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              }
+            }
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "cronjob"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            },
+            "required": ["schedule", "command"]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

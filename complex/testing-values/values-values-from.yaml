@@ -1,0 +1,71 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+    envs:
+      values:
+        ENV_VAR_1: "some-value"
+        ENV_VAR_2: "another-value"
+      valuesFrom:
+        # Backward compatible fieldRef (string format)
+        MY_POD_NAME: metadata.name
+        MY_POD_NAMESPACE: metadata.namespace
+        MY_POD_IP: status.podIP
+
+        # New fieldRef format (object format)
+        NODE_NAME:
+          fieldRef: spec.nodeName
+
+        # New secretKeyRef format
+        DATABASE_PASSWORD:
+          secretKeyRef:
+            name: db-secret
+            key: password
+        DATABASE_PASSWORD_OPTIONAL:
+          secretKeyRef:
+            name: db-secret
+            key: password
+            optional: true
+
+        # New configMapKeyRef format
+        APP_CONFIG:
+          configMapKeyRef:
+            name: app-config
+            key: settings.json
+        APP_CONFIG_OPTIONAL:
+          configMapKeyRef:
+            name: app-config
+            key: settings.json
+            optional: true
+      from:
+        # Test case for envFrom with secretRef (loads all keys from secret)
+        secrets:
+          - global-app-secret
+          - shared-database-secret
+        # Test case for envFrom with configMapRef (loads all keys from configmap)
+        configMaps:
+          - global-app-config
+          - shared-settings-config
+
+components:
+  api:
+    type: http
+    replicas: 2
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+        periodSeconds: 30
+        timeoutSeconds: 15
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: "arn:fake"
+      securityGroupIds:
+        - sg-fake
