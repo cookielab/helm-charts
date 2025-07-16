@@ -1,3 +1,5 @@
+
+
 # complex
 
 ![Version](https://gitlab.cookielab.io/open-source/helms/-/badges/release.svg) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
@@ -63,9 +65,9 @@ The chart uses a **two-level configuration system**:
 Environment variables are merged in the following order (later overrides earlier):
 
 1. **Global values** (`global.container.envs.values`)
-2. **Component-specific values** (`components.<name>.envs.values`)
+2. **Component-specific values** (`components.<n>.envs.values`)
 3. **Global envFrom** (`global.container.envs.from.configMaps/secrets`)
-4. **Component-specific envFrom** (`components.<name>.envs.from.configMaps/secrets`)
+4. **Component-specific envFrom** (`components.<n>.envs.from.configMaps/secrets`)
 
 #### Priority Examples
 
@@ -114,8 +116,8 @@ components:
 - `API_KEY=component-hardcoded` ← Component-specific value has highest priority
 
 **Priority order (highest to lowest):**
-1. **Component hardcoded values** (`components.<name>.envs.values`)
-2. **Component envFrom** (`components.<name>.envs.from.*`)
+1. **Component hardcoded values** (`components.<n>.envs.values`)
+2. **Component envFrom** (`components.<n>.envs.from.*`)
 3. **Global envFrom** (`global.container.envs.from.*`)
 4. **Global hardcoded values** (`global.container.envs.values`)
 
@@ -152,6 +154,27 @@ global:
           - app-config
 ```
 
+### With Secret Environment Variables
+```yaml
+global:
+  secrets:
+    app-secrets:
+      data:
+        DATABASE_PASSWORD: "supersecretpassword"
+        API_KEY: "secret-api-key"
+        JWT_SECRET: "jwt-signing-secret"
+  container:
+    envs:
+      from:
+        secrets:
+          - app-secrets
+components:
+  api:
+    type: http
+    ports:
+      - port: 3000
+```
+
 ### With Volume Mounts
 ```yaml
 global:
@@ -175,27 +198,6 @@ global:
         readOnly: true
 ```
 
-### With Secret Environment Variables
-```yaml
-global:
-  secrets:
-    app-secrets:
-      data:
-        DATABASE_PASSWORD: "supersecretpassword"
-        API_KEY: "secret-api-key"
-        JWT_SECRET: "jwt-signing-secret"
-  container:
-    envs:
-      from:
-        secrets:
-          - app-secrets
-components:
-  api:
-    type: http
-    ports:
-      - port: 3000
-```
-
 ## Complete Examples
 
 The following complete configuration examples are available in the `testing-values/` directory:
@@ -213,9 +215,9 @@ Kubernetes: `>= 1.25.0-0 < 2.0.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://helm.cookielab.dev | lib-gitlab | 0.1.0 |
-| https://helm.cookielab.dev | lib-kubernetes | 0.3.0 |
-| https://helm.cookielab.dev | lib-prometheus | 0.1.7 |
+| file://../lib-gitlab | lib-gitlab | 0.1.0 |
+| file://../lib-kubernetes | lib-kubernetes | 0.4.0 |
+| file://../lib-prometheus | lib-prometheus | 0.1.7 |
 
 ## Values
 

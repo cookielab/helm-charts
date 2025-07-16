@@ -1,0 +1,44 @@
+# Test label merge logic - comprehensive scenarios
+
+global:
+  alertLabels:
+    severity: warning
+    team: platform
+    environment: production
+    category: infrastructure
+  metadata:
+    partOf: test-project
+
+alertRules:
+  - alertName: OnlyGlobalLabels
+    expression: "up == 0"
+    for: 5m
+    description: "Test alert with only global labels"
+    summary: "Only global labels test"
+    
+  - alertName: ConflictingLabels
+    expression: "cpu_usage > 90"
+    for: 2m
+    description: "Test alert with conflicting labels"
+    summary: "Conflicting labels test"
+    labels:
+      severity: critical
+      team: operations
+      
+  - alertName: MixedLabels
+    expression: "memory_usage > 80"
+    for: 3m
+    description: "Test alert with mixed labels"
+    summary: "Mixed labels test"
+    labels:
+      severity: critical
+      priority: high
+      
+  - alertName: NewLabelsOnly
+    expression: "disk_usage > 85"
+    for: 1m
+    description: "Test alert with only new labels"
+    summary: "New labels only test"
+    labels:
+      priority: medium
+      component: storage
