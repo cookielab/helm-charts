@@ -1,0 +1,36 @@
+# Multi-environment alerts example
+# Different alerts with environment-specific configurations
+
+global:
+  alertLabels:
+    severity: warning
+    team: platform
+    environment: production
+  metadata:
+    partOf: monitoring-stack
+
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "rate(container_cpu_usage_seconds_total[5m]) > 0.8"
+    for: 5m
+    description: "High CPU usage detected across cluster"
+    summary: "CPU usage is above 80% for the last 5 minutes"
+    labels:
+      priority: high
+      
+  - alertName: HighMemoryUsage
+    expression: "container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9"
+    for: 10m
+    description: "High memory usage detected"
+    summary: "Memory usage is above 90% for the last 10 minutes"
+    labels:
+      priority: medium
+      
+  - alertName: PodCrashLooping
+    expression: "increase(kube_pod_container_status_restarts_total[30m]) > 3"
+    for: 5m
+    description: "Pod is crash looping"
+    summary: "Pod is crash looping and restarting frequently"
+    labels:
+      severity: critical
+      priority: urgent 

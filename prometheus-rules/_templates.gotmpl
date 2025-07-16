@@ -1,0 +1,135 @@
+{{/*
+Generate basic example for Prometheus Rules chart
+*/}}
+{{- define "chart.exampleBasic" -}}
+# Minimal configuration with default global settings
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "rate(container_cpu_usage_seconds_total[5m]) > 0.8"
+    for: 5m
+    description: "High CPU usage detected"
+    summary: "CPU usage is above 80% for the last 5 minutes"
+{{- end }}
+
+{{/*
+Generate basic example with global configuration
+*/}}
+{{- define "chart.exampleWithGlobal" -}}
+global:
+  alertLabels:
+    severity: critical
+    environment: prod
+  metadata:
+    partOf: my-project
+
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "rate(container_cpu_usage_seconds_total[5m]) > 0.8"
+    for: 5m
+    description: "High CPU usage detected"
+    summary: "CPU usage is above 80% for the last 5 minutes"
+{{- end }}
+
+{{/*
+Generate advanced example with multiple alerts and custom labels
+*/}}
+{{- define "chart.exampleAdvanced" -}}
+global:
+  alertLabels:
+    severity: warning
+    environment: production
+    team: platform
+  metadata:
+    partOf: monitoring-stack
+
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "rate(container_cpu_usage_seconds_total[5m]) > 0.8"
+    for: 5m
+    description: "High CPU usage detected across cluster"
+    summary: "CPU usage is above 80% for the last 5 minutes"
+    labels:
+      priority: high
+      
+  - alertName: HighMemoryUsage
+    expression: "container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9"
+    for: 10m
+    description: "High memory usage detected"
+    summary: "Memory usage is above 90% for the last 10 minutes"
+    labels:
+      priority: medium
+      
+  - alertName: PodCrashLooping
+    expression: "increase(kube_pod_container_status_restarts_total[30m]) > 3"
+    for: 5m
+    description: "Pod is crash looping"
+    summary: "Pod is crash looping and restarting frequently"
+    labels:
+      severity: critical
+      priority: urgent
+{{- end }}
+
+{{/*
+Generate environment-specific example
+*/}}
+{{- define "chart.exampleEnvironmentSpecific" -}}
+global:
+  alertLabels:
+    severity: warning
+    environment: production
+    project: web-app
+  metadata:
+    partOf: web-application
+
+alertRules:
+  - alertName: ApplicationDown
+    expression: "up{job='web-app-production'} == 0"
+    for: 1m
+    description: "Application web-app is down in production"
+    summary: "Application is not responding to health checks"
+    labels:
+      severity: critical
+      
+  - alertName: DatabaseConnectionFailure
+    expression: "mysql_up{environment='production'} == 0"
+    for: 2m
+    description: "Database connection failure in production"
+    summary: "Cannot connect to database"
+{{- end }}
+
+{{/*
+Generate generic infrastructure alerts example
+*/}}
+{{- define "chart.exampleGenericInfrastructure" -}}
+# Generic infrastructure alerts - not tied to specific applications
+global:
+  alertLabels:
+    severity: warning
+    team: platform
+    environment: production
+  metadata:
+    partOf: infrastructure
+
+alertRules:
+  - alertName: PodOOMKilled
+    expression: "increase(kube_pod_container_status_restarts_total{reason='OOMKilled'}[10m]) > 0"
+    for: 0m
+    description: "Pod was killed due to OOM (Out of Memory)"
+    summary: "Pod was OOMKilled in namespace"
+    labels:
+      severity: critical
+      
+  - alertName: NamespaceHighMemoryUsage
+    expression: "sum(container_memory_working_set_bytes{container!='POD'}) by (namespace) / sum(container_spec_memory_limit_bytes{container!='POD'}) by (namespace) > 0.8"
+    for: 5m
+    description: "Namespace memory usage is above 80%"
+    summary: "Namespace memory usage is high"
+    
+  - alertName: NodeDiskSpaceRunningOut
+    expression: "(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) > 0.85"
+    for: 5m
+    description: "Node disk space is running out"
+    summary: "Node disk usage is above 85%"
+    labels:
+      severity: critical
+{{- end }} 

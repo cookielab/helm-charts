@@ -1,0 +1,24 @@
+# Template interpolation example
+# Shows how to use {{ .Project }} and {{ .Environment }} variables
+
+global:
+  alertLabels:
+    environment: production
+    team: devops
+  metadata:
+    partOf: web-application
+
+alertRules:
+  - alertName: ApplicationDown
+    expression: "up{job='{{ .Project }}-{{ .Environment }}'} == 0"
+    for: 1m
+    description: "Application {{ .Project }} is down in {{ .Environment }}"
+    summary: "Application is not responding to health checks"
+    labels:
+      severity: critical
+      
+  - alertName: DatabaseConnectionFailure
+    expression: "mysql_up{environment='{{ .Environment }}'} == 0"
+    for: 2m
+    description: "Database connection failure in {{ .Environment }}"
+    summary: "Cannot connect to database" 

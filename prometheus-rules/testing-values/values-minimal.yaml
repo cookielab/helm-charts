@@ -1,0 +1,9 @@
+# Minimal configuration example
+# Only required alertRules section
+
+alertRules:
+  - alertName: HighCPUUsage
+    expression: "rate(container_cpu_usage_seconds_total[5m]) > 0.8"
+    for: 5m
+    description: "High CPU usage detected"
+    summary: "CPU usage is above 80% for the last 5 minutes" 
