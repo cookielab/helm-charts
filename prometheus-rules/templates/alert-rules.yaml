@@ -17,6 +17,10 @@ spec:
   - name: {{ $.Release.Name }}-global-alerts
     rules:
       {{- range $alertName, $alertTemplate := .Values.alertRules }}
+      {{- $mergedLabels := $globalLabels }}
+      {{- if $alertTemplate.labels }}
+      {{- $mergedLabels = merge $alertTemplate.labels $globalLabels }}
+      {{- end }}
       - alert: {{$.Release.Name}}-{{ $alertTemplate.alertName }}
         expr: |
           {{- $template := $alertTemplate.expression }}
@@ -25,13 +29,8 @@ spec:
         description: {{ $alertTemplate.description | quote }}
         summary: {{ $alertTemplate.summary | quote }}
         labels:
-          {{- range $key, $value := $globalLabels }}
+          {{- range $key, $value := $mergedLabels }}
           {{ $key }}: {{ $value }}
-          {{- end }}
-          {{- if $alertTemplate.labels }}
-          {{- range $key, $value := $alertTemplate.labels }}
-          {{ $key }}: {{ $value }}
-          {{- end }}
           {{- end }}
       {{- end }}
 {{- end }}
