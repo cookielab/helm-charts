@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-1
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version from Chart.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' complex/Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version from complex/Chart.yaml: $VERSION"
+      
+      - name: Get AWS account ID
+        id: get_aws_account
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          echo "Using AWS account ID: $ACCOUNT_ID"
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+      
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.get_aws_account.outputs.account_id }}:role/github-actions-helm-deployment
+          role-session-name: GitHubActions-HelmRelease
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Add Helm repositories and update dependencies
+        run: |
+          echo "Adding Helm repositories and updating dependencies..."
+          cd complex/
+          helm repo add cookielab https://helm.cookielab.dev
+          helm dependency update
+          helm dependency build
+      
+      - name: Download existing S3 repository content
+        run: |
+          echo "Downloading existing S3 content to preserve other charts..."
+          mkdir -p public/
+          aws s3 sync s3://dev-helm/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
+          
+          echo -e 'User-Agent: *\nDisallow: /' > ./public/robots.txt
+          
+          echo "Current content in public/:"
+          ls -la public/
+      
+      - name: Package GitHub charts
+        run: |
+          echo "Packaging charts from GitHub repository..."
+          
+          # Package library charts
+          echo "Packaging library charts..."
+          helm package -d public lib-datadog
+          helm package -d public lib-gitlab  
+          helm package -d public lib-kubernetes
+          helm package -d public lib-prometheus
+          
+          # Package application charts
+          echo "Packaging application charts..."
+          helm package -d public prometheus-rules
+          helm package -d public complex
+          
+          echo "All packaged charts:"
+          ls -la public/*.tgz
+      
+      - name: Generate Helm repository index
+        run: |
+          echo "Generating Helm repository index with ALL charts..."
+          # This will include both existing charts (frontend, backend) and new ones
+          helm repo index public --url https://helm.cookielab.dev
+          
+          echo "Generated index.yaml content:"
+          head -20 public/index.yaml
+      
+      - name: Upload to S3 with public-read ACL
+        run: |
+          echo "Uploading all content to S3..."
+          aws s3 sync --acl public-read public/ s3://dev-helm/
+          
+          echo "S3 upload completed successfully"
+      
+      - name: Invalidate CloudFront distribution
+        run: |
+          echo "Invalidating CloudFront cache..."
+          # Get CloudFront distribution ID for cookielab_dev_helm
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?contains(@, 'helm.cookielab.dev')]].Id" --output text)
+          echo "Found CloudFront distribution ID: $DISTRIBUTION_ID"
+          
+          aws cloudfront create-invalidation \
+            --distribution-id $DISTRIBUTION_ID \
+            --paths "/*"
+          
+          echo "CloudFront invalidation initiated" 
