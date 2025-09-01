@@ -1740,8 +1740,7 @@
               "keda": {
                 "type": "null"
               }
-            },
-            "required": ["command"]
+            }
           },
           {
             "properties": {

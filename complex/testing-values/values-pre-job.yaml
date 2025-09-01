@@ -1,4 +1,6 @@
 global:
+  # metadata:
+  #   partOf: project
   container:
     image:
       repository: cookielab/deployer
@@ -11,4 +13,10 @@ components:
       - bin/migrations
     envs:
       values:
-        DATABASE_URL: '$(MIGRATOR_DATABASE_URL)'
+        DATABASE_URL: "$(MIGRATOR_DATABASE_URL)"
+
+  migrations-without-command:
+    type: pre-job
+    envs:
+      values:
+        DATABASE_URL: "$(MIGRATOR_DATABASE_URL)"
