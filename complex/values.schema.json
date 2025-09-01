@@ -1612,7 +1612,14 @@
                   "maxUnavailable": {
                       "type": "integer",
                       "description": "Maximum number of pods that can be unavailable at any time."
+                    },
+                  "extraMatchLabels": {
+                    "type": "object",
+                    "description": "Additional labels to add to the selector matchLabels.",
+                    "additionalProperties": {
+                      "type": "string"
                     }
+                  }
                 },
                 "required": ["maxUnavailable"],
                 "additionalProperties": false
@@ -1623,6 +1630,13 @@
                   "minAvailable": {
                     "type": "integer",
                     "description": "Minimum number of pods that must be available at any time."
+                  },
+                  "extraMatchLabels": {
+                    "type": "object",
+                    "description": "Additional labels to add to the selector matchLabels.",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": ["minAvailable"],

@@ -22,7 +22,7 @@ components:
           port: 8080
           path: /health-check
     targetGroup:
-      arn: 'arn:fake'
+      arn: "arn:fake"
       securityGroupIds:
         - sg-fake
     pdb:
@@ -32,3 +32,5 @@ components:
     replicas: 1
     pdb:
       minAvailable: 1
+      extraMatchLabels:
+        fake.label: fake-value
