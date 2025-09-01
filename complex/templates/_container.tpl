@@ -6,6 +6,10 @@ imagePullPolicy: {{ dig "specific" "image" "pullPolicy" .global.image.pullPolicy
 command:
 {{ toYaml .specific.command | indent 2 }}
 {{- end }}
+{{- if .specific.args }}
+args:
+{{ toYaml .specific.args | indent 2 }}
+{{- end }}
 {{- if .specific.ports }}
 ports:
 {{- range $port := .specific.ports }}

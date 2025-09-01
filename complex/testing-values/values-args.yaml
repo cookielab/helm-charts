@@ -1,0 +1,48 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    type: http
+    replicas: 1
+    command:
+      - /bin/sh
+    args:
+      - "-c"
+      - "echo 'Starting API server' && exec node server.js"
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 3000
+          path: /health
+        periodSeconds: 10
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          port: 3000
+          path: /health
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake
+
+  worker:
+    type: consumer
+    replicas: 2
+    args:
+      - "--workers=4"
+      - "--log-level=info"
+
+  scheduler:
+    type: cronjob
+    schedule: '0 */6 * * *'
+    command:
+      - python3
+    args:
+      - "/app/scheduler.py"
+      - "--dry-run=false"

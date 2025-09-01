@@ -536,6 +536,13 @@
         "type": "string"
       }
     },
+    "args": {
+      "description": "Arguments to the entrypoint. The container image's CMD is used if this is not provided. Variable references $(VAR_NAME) are expanded using the container's environment. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. \"$$(VAR_NAME)\" will produce the string literal \"$(VAR_NAME)\". Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "imagePullPolicy": {
       "description": "Image pull policy. One of Always, Never, IfNotPresent. Defaults to Always if :latest tag is specified, or IfNotPresent otherwise. Cannot be updated. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images\n\nPossible enum values:\n - `\"Always\"` means that kubelet always attempts to pull the latest image. Container will fail If the pull fails.\n - `\"IfNotPresent\"` means that kubelet pulls if the image isn't present on disk. Container will fail if the image isn't present and the pull fails.\n - `\"Never\"` means that kubelet never pulls an image, but only uses a local image. Container will fail if the image isn't present",
       "type": "string",
@@ -986,6 +993,9 @@
         },
         "command": {
           "$ref": "#/definitions/command"
+        },
+        "args": {
+          "$ref": "#/definitions/args"
         },
         "ports": {
           "type": "array",
@@ -1658,6 +1668,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "args": {
+            "$ref": "#/definitions/args"
           },
           "keda": {
             "type": "object",
