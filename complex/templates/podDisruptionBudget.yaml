@@ -19,10 +19,9 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: {{ $componentName }}
-      app.kubernetes.io/name: {{ $.Chart.Name }}
+      {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 6 | trim }}
       {{- range $key, $value := $extraMatchLabels }}
-      {{ $key }}: {{ $value }}
+      {{ $key }}: {{ $value | quote }}
       {{- end }}
-  {{- end }}
-  {{- end }}
+{{ end -}}
+{{- end -}}
