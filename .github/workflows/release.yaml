@@ -17,20 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Get version from Chart.yaml
-        id: get_version
-        run: |
-          VERSION=$(grep '^version:' complex/Chart.yaml | awk '{print $2}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version from complex/Chart.yaml: $VERSION"
-      
-      - name: Get AWS account ID
-        id: get_aws_account
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
-          echo "Using AWS account ID: $ACCOUNT_ID"
-      
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
@@ -99,13 +85,26 @@ jobs:
       
       - name: Invalidate CloudFront distribution
         run: |
-          echo "Invalidating CloudFront cache..."
-          # Get CloudFront distribution ID for cookielab_dev_helm
-          DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?contains(@, 'helm.cookielab.dev')]].Id" --output text)
-          echo "Found CloudFront distribution ID: $DISTRIBUTION_ID"
-          
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
-          
-          echo "CloudFront invalidation initiated" 
+          banner() { echo "=== $1 ==="; }
+          fail() { echo "ERROR: $1" >&2; exit 1; }
+
+          cf_invalidate() {
+            aws cloudfront create-invalidation \
+              --distribution-id "$1" \
+              --paths "/*" \
+              --query 'Invalidation.Id' \
+              --output text
+          }
+
+          cf_wait() {
+            aws cloudfront wait invalidation-completed \
+              --distribution-id "$1" \
+              --id "$2"
+          }
+
+          banner "Invalidate in CloudFront (running)"
+          AWS_CF_INVALIDATION_ID=$(cf_invalidate "${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" \
+            || fail "Invalidate in CloudFront (failed on request)")
+          cf_wait "${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" "${AWS_CF_INVALIDATION_ID}" \
+            || fail "Invalidate in CloudFront (failed on wait)"
+          banner "Invalidate in CloudFront (finished)" 

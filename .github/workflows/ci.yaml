@@ -133,18 +133,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install helm-docs
-        run: |
-          cd /tmp
-          wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
-          tar -xzf helm-docs_1.14.2_Linux_x86_64.tar.gz
-          sudo mv helm-docs /usr/local/bin/
-      
+
       - name: Check complex chart documentation
         run: |
           echo "Checking complex chart documentation..."
-          helm-docs --chart-search-root=complex --template-files=_templates.gotmpl --template-files=README.md.gotmpl
+          docker run --rm -v ${{ github.workspace }}:/workdir jnorwood/helm-docs:v1.14.2 \
+            --chart-search-root=complex \
+            --template-files=_templates.gotmpl \
+            --template-files=README.md.gotmpl
           if ! git diff --quiet complex/README.md; then
             echo "WARNING: Complex chart documentation is out of date!"
             echo "Run './scripts/update-docs.sh complex' locally and commit the changes."
@@ -159,7 +155,10 @@ jobs:
       - name: Check prometheus-rules chart documentation
         run: |
           echo "Checking prometheus-rules chart documentation..."
-          helm-docs --chart-search-root=prometheus-rules --template-files=_templates.gotmpl --template-files=README.md.gotmpl
+          docker run --rm -v ${{ github.workspace }}:/workdir jnorwood/helm-docs:v1.14.2 \
+            --chart-search-root=prometheus-rules \
+            --template-files=_templates.gotmpl \
+            --template-files=README.md.gotmpl
           if ! git diff --quiet prometheus-rules/README.md; then
             echo "WARNING: Prometheus Rules chart documentation is out of date!"
             echo "Run './scripts/update-docs.sh prometheus-rules' locally and commit the changes."
