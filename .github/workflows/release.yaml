@@ -8,12 +8,10 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  AWS_REGION: eu-west-1
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - uses: actions/checkout@v4
       
@@ -25,9 +23,9 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           role-session-name: GitHubActions-HelmRelease
-          aws-region: ${{ env.AWS_REGION }}
       
       - name: Add Helm repositories and update dependencies
         run: |
