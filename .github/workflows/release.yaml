@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "Downloading existing S3 content to preserve other charts..."
           mkdir -p public/
-          aws s3 sync s3://dev-helm/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
+          aws s3 sync s3://${{ env.AWS_S3_BUCKET }}/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
           
           echo -e 'User-Agent: *\nDisallow: /' > ./public/robots.txt
           
