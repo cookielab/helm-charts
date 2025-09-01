@@ -137,7 +137,7 @@ jobs:
       - name: Check complex chart documentation
         run: |
           echo "Checking complex chart documentation..."
-          docker run --rm -v ${{ github.workspace }}:/workdir jnorwood/helm-docs:v1.14.2 \
+          docker run --rm -v ${{ github.workspace }}:/workdir -w /workdir jnorwood/helm-docs:v1.14.2 \
             --chart-search-root=complex \
             --template-files=_templates.gotmpl \
             --template-files=README.md.gotmpl
@@ -155,7 +155,7 @@ jobs:
       - name: Check prometheus-rules chart documentation
         run: |
           echo "Checking prometheus-rules chart documentation..."
-          docker run --rm -v ${{ github.workspace }}:/workdir jnorwood/helm-docs:v1.14.2 \
+          docker run --rm -v ${{ github.workspace }}:/workdir -w /workdir jnorwood/helm-docs:v1.14.2 \
             --chart-search-root=prometheus-rules \
             --template-files=_templates.gotmpl \
             --template-files=README.md.gotmpl
