@@ -105,7 +105,7 @@ jobs:
           echo "Found CloudFront distribution ID: $DISTRIBUTION_ID"
           
           aws cloudfront create-invalidation \
-            --distribution-id $DISTRIBUTION_ID \
+            --distribution-id ${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
           
           echo "CloudFront invalidation initiated" 
