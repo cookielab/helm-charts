@@ -808,6 +808,9 @@
         "maxSkew": {
           "type": "integer"
         },
+        "topologyKey": {
+          "type": "string"
+        },
         "partOf": {
           "type": "string"
         },

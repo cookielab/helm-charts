@@ -1,12 +1,12 @@
 dependencies:
 - name: lib-gitlab
-  repository: https://helm.cookielab.dev
+  repository: file://../lib-gitlab
   version: 0.1.0
 - name: lib-kubernetes
-  repository: https://helm.cookielab.dev
-  version: 0.3.0
+  repository: file://../lib-kubernetes
+  version: 0.5.0
 - name: lib-prometheus
-  repository: https://helm.cookielab.dev
+  repository: file://../lib-prometheus
   version: 0.1.7
-digest: sha256:a2bb84f4a85d825e32dedf80d28147494e98ea9f0080d089d630726366f52221
-generated: "2025-06-16T17:48:14.233234+02:00"
+digest: sha256:a7057c5d70600cc8d8fc105f8db11f7d4c1e0db3e118a0760760e49e874c9e7d
+generated: "2025-07-18T18:32:53.762973+02:00"
