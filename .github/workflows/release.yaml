@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-1
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+      
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-HelmRelease
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Add Helm repositories and update dependencies
+        run: |
+          echo "Adding Helm repositories and updating dependencies..."
+          cd complex/
+          helm repo add cookielab https://helm.cookielab.dev
+          helm dependency update
+          helm dependency build
+      
+      - name: Download existing S3 repository content
+        run: |
+          echo "Downloading existing S3 content to preserve other charts..."
+          mkdir -p public/
+          aws s3 sync s3://${{ env.AWS_S3_BUCKET }}/ public/ || echo "S3 bucket is empty or not accessible, continuing..."
+          
+          echo -e 'User-Agent: *\nDisallow: /' > ./public/robots.txt
+          
+          echo "Current content in public/:"
+          ls -la public/
+      
+      - name: Package GitHub charts
+        run: |
+          echo "Packaging charts from GitHub repository..."
+          
+          # Package library charts
+          echo "Packaging library charts..."
+          helm package -d public lib-datadog
+          helm package -d public lib-gitlab  
+          helm package -d public lib-kubernetes
+          helm package -d public lib-prometheus
+          
+          # Package application charts
+          echo "Packaging application charts..."
+          helm package -d public prometheus-rules
+          helm package -d public complex
+          
+          echo "All packaged charts:"
+          ls -la public/*.tgz
+      
+      - name: Generate Helm repository index
+        run: |
+          echo "Generating Helm repository index with ALL charts..."
+          # This will include both existing charts (frontend, backend) and new ones
+          helm repo index public --url https://helm.cookielab.dev
+          
+          echo "Generated index.yaml content:"
+          head -20 public/index.yaml
+      
+      - name: Upload to S3 with public-read ACL
+        run: |
+          echo "Uploading all content to S3..."
+          aws s3 sync --acl public-read public/ s3://${{ env.AWS_S3_BUCKET }}/
+          
+          echo "S3 upload completed successfully"
+      
+      - name: Invalidate CloudFront distribution
+        run: |
+          banner() { echo "=== $1 ==="; }
+          fail() { echo "ERROR: $1" >&2; exit 1; }
+
+          cf_invalidate() {
+            aws cloudfront create-invalidation \
+              --distribution-id "$1" \
+              --paths "/*" \
+              --query 'Invalidation.Id' \
+              --output text
+          }
+
+          cf_wait() {
+            aws cloudfront wait invalidation-completed \
+              --distribution-id "$1" \
+              --id "$2"
+          }
+
+          banner "Invalidate in CloudFront (running)"
+          AWS_CF_INVALIDATION_ID=$(cf_invalidate "${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" \
+            || fail "Invalidate in CloudFront (failed on request)")
+          cf_wait "${{ env.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" "${AWS_CF_INVALIDATION_ID}" \
+            || fail "Invalidate in CloudFront (failed on wait)"
+          banner "Invalidate in CloudFront (finished)" 

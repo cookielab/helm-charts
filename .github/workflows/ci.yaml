@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+      
+      - name: Add Helm repositories and update dependencies
+        run: |
+          cd complex/
+          helm repo add cookielab https://helm.cookielab.dev
+          helm dependency update
+          helm dependency build
+      
+      - name: Cache Helm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            complex/charts
+          key: helm-deps-${{ hashFiles('complex/Chart.yaml', 'complex/Chart.lock') }}
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-dependencies
+          path: complex/charts
+          retention-days: 1
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: init
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+          
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: helm-dependencies
+          path: complex/charts
+      
+      - name: Lint all charts
+        run: |
+          # Lint library charts
+          echo "Linting library charts..."
+          helm lint lib-datadog
+          helm lint lib-gitlab
+          helm lint lib-kubernetes
+          helm lint lib-prometheus
+          
+          # Lint prometheus-rules chart
+          echo "Linting prometheus-rules chart..."
+          helm lint prometheus-rules
+          
+          # Lint complex chart with all testing-values configurations
+          echo "Linting complex chart with testing values..."
+          helm lint complex -f complex/testing-values/values-minimal.yaml
+          helm lint complex -f complex/testing-values/values-hpa.yaml
+          helm lint complex -f complex/testing-values/values-vpa.yaml
+          helm lint complex -f complex/testing-values/values-alerts.yaml
+          helm lint complex -f complex/testing-values/values-consumer.yaml
+          helm lint complex -f complex/testing-values/values-cronjob.yaml
+          helm lint complex -f complex/testing-values/values-ingress.yaml
+          helm lint complex -f complex/testing-values/values-targetgroups.yaml
+          helm lint complex -f complex/testing-values/values-configmap.yaml
+          helm lint complex -f complex/testing-values/values-volume-mounts.yaml
+
+  template-test:
+    runs-on: ubuntu-latest
+    needs: init
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+          
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: helm-dependencies
+          path: complex/charts
+      
+      - name: Template test all configurations
+        run: |
+          echo "Testing all complex chart configurations..."
+          
+          # Test basic configurations
+          helm template test ./complex --debug -f complex/testing-values/values-minimal.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-hpa.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-vpa.yaml
+          
+          # Test feature configurations
+          helm template test ./complex --debug -f complex/testing-values/values-alerts.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-consumer.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-consumer-keda.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-cronjob.yaml
+          
+          # Test advanced configurations  
+          helm template test ./complex --debug -f complex/testing-values/values-pre-job.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-service-account.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-security-context.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-rolling-update.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-pod-disruption-budget.yaml
+          
+          # Test infrastructure configurations
+          helm template test ./complex --debug -f complex/testing-values/values-ingress.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-values-from.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-targetgroups.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-pull-secrets.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-configmap.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-volume-mounts.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-tolerations.yaml
+
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check complex chart documentation
+        run: |
+          echo "Checking complex chart documentation..."
+          docker run --rm -v ${{ github.workspace }}:/workdir -w /workdir jnorwood/helm-docs:v1.14.2 \
+            --chart-search-root=complex \
+            --template-files=_templates.gotmpl \
+            --template-files=README.md.gotmpl
+          if ! git diff --quiet complex/README.md; then
+            echo "WARNING: Complex chart documentation is out of date!"
+            echo "Run './scripts/update-docs.sh complex' locally and commit the changes."
+            echo "--- Expected changes ---"
+            git diff complex/README.md
+            echo "--- End of changes ---"
+            echo "Consider updating documentation, but continuing..."
+          else
+            echo "Complex chart documentation is up to date"
+          fi
+      
+      - name: Check prometheus-rules chart documentation
+        run: |
+          echo "Checking prometheus-rules chart documentation..."
+          docker run --rm -v ${{ github.workspace }}:/workdir -w /workdir jnorwood/helm-docs:v1.14.2 \
+            --chart-search-root=prometheus-rules \
+            --template-files=_templates.gotmpl \
+            --template-files=README.md.gotmpl
+          if ! git diff --quiet prometheus-rules/README.md; then
+            echo "WARNING: Prometheus Rules chart documentation is out of date!"
+            echo "Run './scripts/update-docs.sh prometheus-rules' locally and commit the changes."
+            echo "--- Expected changes ---"
+            git diff prometheus-rules/README.md
+            echo "--- End of changes ---"
+            echo "Consider updating documentation, but continuing..."
+          else
+            echo "Prometheus Rules chart documentation is up to date"
+          fi 
