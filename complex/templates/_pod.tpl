@@ -35,9 +35,10 @@ serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }
 # securityContext:
 #   runAsNonRoot: true
 {{ include "cookielab.kubernetes.pod.topology-spread" (dict "kubeLabels" .kubeLabels "metadata" .metadata) }}
-{{- if .nodeSelector }}
+{{- $mergedNodeSelector := merge (default dict .nodeSelector) (default dict .global.nodeSelector) }}
+{{- if $mergedNodeSelector }}
 nodeSelector:
-{{ toYaml .nodeSelector | indent 2 }}
+{{ toYaml $mergedNodeSelector | indent 2 }}
 {{- end }}
 enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- $globalVolumeMounts := .global.volumeMounts }}
