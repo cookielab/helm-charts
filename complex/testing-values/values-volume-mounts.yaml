@@ -5,8 +5,8 @@ global:
       tag: 1.0.0-rc2
     volumeMounts:
       configMaps:
-        - name: config-volume
-          configMapName: app-config
+        - name: app-shared-config-volume
+          configMapName: app-shared-config
           mountPath: /app/config
           readOnly: true
         - name: shared-config-volume
@@ -15,13 +15,13 @@ global:
           readOnly: true
           subPath: app.env
       secrets:
-        - name: secret-volume
-          secretName: app-secret
+        - name: secret-shared-volume
+          secretName: app-shared-secret
           mountPath: /app/secrets
           readOnly: true
 
 configMaps:
-  app-config:
+  app-shared-config:
     data:
       config.json: |
         {
@@ -42,8 +42,26 @@ configMaps:
         FEATURE_FLAG_A=true
         FEATURE_FLAG_B=false
         APP_ENV=testing
+  scheduler-specific-config:
+    data:
+      scheduler.yaml: |
+        schedule:
+          cleanup_logs: "0 3 * * *"
+          backup_db: "0 1 * * 0"
+        retention:
+          logs_days: 7
+          backup_days: 30
+  web-specific-config:
+    data:
+      web-config.json: |
+        {
+          "server_port": 8080,
+          "static_path": "/static",
+          "max_connections": 500
+        }
 
 components:
+  # No volumeMounts defined - inherits all global volumeMounts
   api:
     type: http
     replicas: 2
@@ -61,6 +79,73 @@ components:
           port: 8080
           path: /health-check
     targetGroup:
-      arn: 'arn:fake'
+      arn: "arn:fake"
       securityGroupIds:
-        - sg-fake 
+        - sg-fake
+
+  # Override only secrets, inherit configMaps from global
+  worker:
+    type: consumer
+    replicas: 1
+    volumeMounts:
+      secrets:
+        - name: worker-specific-secret
+          secretName: worker-specific-secret
+          mountPath: /app/worker-secrets
+          readOnly: true
+
+  # Override only configMaps, inherit secrets from global
+  web:
+    type: http
+    replicas: 1
+    ports:
+      - port: 8080
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health
+        periodSeconds: 10
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health
+    targetGroup:
+      arn: "arn:fake:web"
+      securityGroupIds:
+        - sg-fake-web
+    volumeMounts:
+      configMaps:
+        - name: web-specific-config
+          configMapName: web-specific-config
+          mountPath: /app/web-config
+          readOnly: true
+
+  # Component with only local volumeMounts - no global inheritance
+  scheduler:
+    type: cronjob
+    schedule: "0 2 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "echo 'Running scheduled task'"
+    volumeMounts:
+      configMaps:
+        - name: scheduler-specific-config
+          configMapName: scheduler-specific-config
+          mountPath: /app/scheduler-config
+          readOnly: true
+      secrets:
+        - name: scheduler-specific-secrets
+          secretName: scheduler-specific-secrets
+          mountPath: /app/scheduler-secrets
+          readOnly: true
+
+  # Component with empty volumeMounts to explicitly exclude all global volumes
+  maintenance:
+    type: consumer
+    replicas: 1
+    volumeMounts:
+      configMaps: []
+      secrets: []

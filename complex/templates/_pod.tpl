@@ -41,40 +41,32 @@ nodeSelector:
 {{ toYaml $mergedNodeSelector | indent 2 }}
 {{- end }}
 enableServiceLinks: {{ default "False" .enableServiceLinks }}
-{{- $globalVolumeMounts := .global.volumeMounts }}
+{{- $globalVolumeMounts := .global.container.volumeMounts }}
 {{- $localVolumeMounts := .volumeMounts }}
-{{- if or $globalVolumeMounts $localVolumeMounts .volumes }}
-volumes:
-{{- if $globalVolumeMounts }}
-{{- if $globalVolumeMounts.configMaps }}
-{{- range $globalVolumeMounts.configMaps }}
-  - name: {{ .name }}
-    configMap:
-      name: {{ .configMapName }}
-{{- end }}
-{{- end }}
-{{- if $globalVolumeMounts.secrets }}
-{{- range $globalVolumeMounts.secrets }}
-  - name: {{ .name }}
-    secret:
-      secretName: {{ .secretName }}
-{{- end }}
-{{- end }}
-{{- end }}
+{{- $configMaps := $globalVolumeMounts.configMaps }}
+{{- $secrets := $globalVolumeMounts.secrets }}
 {{- if $localVolumeMounts }}
-{{- if $localVolumeMounts.configMaps }}
-{{- range $localVolumeMounts.configMaps }}
+{{- if hasKey $localVolumeMounts "configMaps" }}
+{{- $configMaps = $localVolumeMounts.configMaps }}
+{{- end }}
+{{- if hasKey $localVolumeMounts "secrets" }}
+{{- $secrets = $localVolumeMounts.secrets }}
+{{- end }}
+{{- end }}
+{{- if or $configMaps $secrets .volumes }}
+volumes:
+{{- with $configMaps }}
+{{- range . }}
   - name: {{ .name }}
     configMap:
       name: {{ .configMapName }}
 {{- end }}
 {{- end }}
-{{- if $localVolumeMounts.secrets }}
-{{- range $localVolumeMounts.secrets }}
+{{- with $secrets }}
+{{- range . }}
   - name: {{ .name }}
     secret:
       secretName: {{ .secretName }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- if .volumes }}

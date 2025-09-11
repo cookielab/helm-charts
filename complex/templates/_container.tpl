@@ -25,31 +25,20 @@ securityContext:
 {{- end }}
 {{ include "cookielab.kubernetes.container.envs.values" (dict "specific" (dig "specific" "envs" (dict) .) "globalValues" .global.envs.values "globalValuesFrom" .global.envs.valuesFrom) }}
 {{ include "cookielab.kubernetes.container.envs.from" (dict "specific" (dig "specific" "envs" "from" (dict) .) "global" .global.envs.from) }}
-{{- if or .specific.volumeMounts .global.volumeMounts }}
-volumeMounts:
-{{- if .global.volumeMounts.configMaps }}
-{{- range .global.volumeMounts.configMaps }}
-  - name: {{ .name }}
-    mountPath: {{ .mountPath }}
-    readOnly: {{ .readOnly | default true }}
-    {{- if .subPath }}
-    subPath: {{ .subPath }}
-    {{- end }}
-{{- end }}
-{{- end }}
-{{- if .global.volumeMounts.secrets }}
-{{- range .global.volumeMounts.secrets }}
-  - name: {{ .name }}
-    mountPath: {{ .mountPath }}
-    readOnly: {{ .readOnly | default true }}
-    {{- if .subPath }}
-    subPath: {{ .subPath }}
-    {{- end }}
-{{- end }}
-{{- end }}
+{{- $configMaps := .global.volumeMounts.configMaps }}
+{{- $secrets := .global.volumeMounts.secrets }}
 {{- if .specific.volumeMounts }}
-{{- if .specific.volumeMounts.configMaps }}
-{{- range .specific.volumeMounts.configMaps }}
+{{- if hasKey .specific.volumeMounts "configMaps" }}
+{{- $configMaps = .specific.volumeMounts.configMaps }}
+{{- end }}
+{{- if hasKey .specific.volumeMounts "secrets" }}
+{{- $secrets = .specific.volumeMounts.secrets }}
+{{- end }}
+{{- end }}
+{{- if or $configMaps $secrets }}
+volumeMounts:
+{{- with $configMaps }}
+{{- range . }}
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
     readOnly: {{ .readOnly | default true }}
@@ -58,15 +47,14 @@ volumeMounts:
     {{- end }}
 {{- end }}
 {{- end }}
-{{- if .specific.volumeMounts.secrets }}
-{{- range .specific.volumeMounts.secrets }}
+{{- with $secrets }}
+{{- range . }}
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
     readOnly: {{ .readOnly | default true }}
     {{- if .subPath }}
     subPath: {{ .subPath }}
     {{- end }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

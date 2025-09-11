@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -121,6 +121,66 @@ components:
 3. **Global envFrom** (`global.container.envs.from.*`)
 4. **Global hardcoded values** (`global.container.envs.values`)
 
+### Volume Mounts Priority
+
+Volume mounts support **granular overrides** where components can override just `configMaps` or just `secrets`:
+
+**Component-specific volumeMounts always override global volumeMounts at the configMaps/secrets level.**
+
+#### Volume Mounts Examples
+
+**Example 1 - Inherit all global volume mounts:**
+```yaml
+global:
+  container:
+    volumeMounts:
+      configMaps:
+        - name: app-config
+          configMapName: app-config
+          mountPath: /app/config
+      secrets:
+        - name: app-secret
+          secretName: app-secret
+          mountPath: /app/secrets
+
+components:
+  api:
+    # No volumeMounts defined - inherits all global volumeMounts
+```
+
+**Example 2 - Override only configMaps, inherit secrets:**
+```yaml
+components:
+  web:
+    volumeMounts:
+      configMaps:
+        - name: web-config
+          configMapName: web-specific-config
+          mountPath: /app/web-config
+      # secrets not defined - inherits global secrets
+```
+
+**Example 3 - Override only secrets, inherit configMaps:**
+```yaml
+components:
+  worker:
+    volumeMounts:
+      secrets:
+        - name: worker-secret
+          secretName: worker-specific-secret
+          mountPath: /app/worker-secrets
+      # configMaps not defined - inherits global configMaps
+```
+
+**Example 4 - Explicitly exclude all global volumes:**
+```yaml
+components:
+  maintenance:
+    volumeMounts:
+      configMaps: []  # Empty array = no configMap volumes
+      secrets: []     # Empty array = no secret volumes
+```
+
 ## Installation
 
 ```bash
@@ -189,13 +249,19 @@ global:
               return 200 'Hello World!';
             }
           }
-  volumeMounts:
-    configMaps:
-      - name: config-volume
-        configMapName: nginx-config
-        mountPath: /etc/nginx/conf.d
-        subPath: nginx.conf
-        readOnly: true
+  container:
+    volumeMounts:
+      configMaps:
+        - name: config-volume
+          configMapName: nginx-config
+          mountPath: /etc/nginx/conf.d
+          subPath: nginx.conf
+          readOnly: true
+      secrets:
+        - name: tls-certs
+          secretName: app-tls
+          mountPath: /etc/ssl/certs
+          readOnly: true
 ```
 
 ## Complete Examples
@@ -216,7 +282,7 @@ Kubernetes: `>= 1.25.0-0 < 2.0.0-0`
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../lib-gitlab | lib-gitlab | 0.1.0 |
-| file://../lib-kubernetes | lib-kubernetes | 0.4.0 |
+| file://../lib-kubernetes | lib-kubernetes | 0.5.0 |
 | file://../lib-prometheus | lib-prometheus | 0.1.7 |
 
 ## Values
