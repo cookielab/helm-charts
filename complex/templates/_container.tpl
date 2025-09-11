@@ -25,8 +25,9 @@ securityContext:
 {{- end }}
 {{ include "cookielab.kubernetes.container.envs.values" (dict "specific" (dig "specific" "envs" (dict) .) "globalValues" .global.envs.values "globalValuesFrom" .global.envs.valuesFrom) }}
 {{ include "cookielab.kubernetes.container.envs.from" (dict "specific" (dig "specific" "envs" "from" (dict) .) "global" .global.envs.from) }}
-{{- $configMaps := .global.volumeMounts.configMaps }}
-{{- $secrets := .global.volumeMounts.secrets }}
+{{- $globalVolumeMounts := .global.volumeMounts | default dict }}
+{{- $configMaps := $globalVolumeMounts.configMaps }}
+{{- $secrets := $globalVolumeMounts.secrets }}
 {{- if .specific.volumeMounts }}
 {{- if hasKey .specific.volumeMounts "configMaps" }}
 {{- $configMaps = .specific.volumeMounts.configMaps }}
