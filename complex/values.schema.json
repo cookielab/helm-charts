@@ -1720,6 +1720,9 @@
             "additionalProperties": false,
             "required": []
           },
+          "volumeMounts": {
+            "$ref": "#/definitions/volumeMounts"
+          },
           "imagePullSecrets": {
             "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",
             "type": "array",
