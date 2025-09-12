@@ -46,11 +46,17 @@ enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- $configMaps := $globalVolumeMounts.configMaps }}
 {{- $secrets := $globalVolumeMounts.secrets }}
 {{- if $localVolumeMounts }}
+{{- $vmKeys := keys $localVolumeMounts }}
+{{- if eq (len $vmKeys) 0 }}
+{{- $configMaps = (list) }}
+{{- $secrets = (list) }}
+{{- else }}
 {{- if hasKey $localVolumeMounts "configMaps" }}
 {{- $configMaps = $localVolumeMounts.configMaps }}
 {{- end }}
 {{- if hasKey $localVolumeMounts "secrets" }}
 {{- $secrets = $localVolumeMounts.secrets }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- if or $configMaps $secrets .volumes }}

@@ -28,12 +28,18 @@ securityContext:
 {{- $globalVolumeMounts := .global.volumeMounts | default dict }}
 {{- $configMaps := $globalVolumeMounts.configMaps }}
 {{- $secrets := $globalVolumeMounts.secrets }}
-{{- if .specific.volumeMounts }}
+{{- if hasKey .specific "volumeMounts" }}
+{{- $vmKeys := keys .specific.volumeMounts }}
+{{- if eq (len $vmKeys) 0 }}
+{{- $configMaps = (list) }}
+{{- $secrets = (list) }}
+{{- else }}
 {{- if hasKey .specific.volumeMounts "configMaps" }}
 {{- $configMaps = .specific.volumeMounts.configMaps }}
 {{- end }}
 {{- if hasKey .specific.volumeMounts "secrets" }}
 {{- $secrets = .specific.volumeMounts.secrets }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- if or $configMaps $secrets }}
