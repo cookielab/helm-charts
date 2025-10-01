@@ -1066,7 +1066,7 @@
         },
         "serviceAccountCreate": {
           "description": "ServiceAccountCreate create ServiceAccount",
-          "type": "string"
+          "type": "boolean"
         },
         "nodeSelector": {
           "$ref": "#/definitions/nodeSelector"
@@ -1145,7 +1145,7 @@
         },
         "serviceAccountCreate": {
           "description": "ServiceAccountCreate create ServiceAccount",
-          "type": "string"
+          "type": "boolean"
         },
         "alertLabels": {
           "type": "object",
@@ -1605,7 +1605,7 @@
           },
           "serviceAccountCreate": {
             "description": "ServiceAccountCreate create ServiceAccount",
-            "type": "string"
+            "type": "boolean"
           },
           "nodeSelector": {
             "$ref": "#/definitions/nodeSelector"
