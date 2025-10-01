@@ -1061,7 +1061,11 @@
           "type": "boolean"
         },
         "serviceAccountName": {
-          "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+          "description": "ServiceAccountName is the name of the ServiceAccount to use for running pods.",
+          "type": "string"
+        },
+        "serviceAccountCreate": {
+          "description": "ServiceAccountCreate create ServiceAccount",
           "type": "string"
         },
         "nodeSelector": {
@@ -1136,7 +1140,11 @@
           }
         },
         "serviceAccountName": {
-          "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+          "description": "ServiceAccountName is the name of the ServiceAccount to use for running pods.",
+          "type": "string"
+        },
+        "serviceAccountCreate": {
+          "description": "ServiceAccountCreate create ServiceAccount",
           "type": "string"
         },
         "alertLabels": {
@@ -1592,7 +1600,11 @@
             "type": "boolean"
           },
           "serviceAccountName": {
-            "description": "ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.",
+            "description": "ServiceAccountName is the name of the ServiceAccount to use for running pods.",
+            "type": "string"
+          },
+          "serviceAccountCreate": {
+            "description": "ServiceAccountCreate create ServiceAccount",
             "type": "string"
           },
           "nodeSelector": {
