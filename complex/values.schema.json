@@ -1279,6 +1279,9 @@
             "type": "string",
             "enum": ["pre-job", "http", "http-internal", "consumer", "cronjob"]
           },
+          "weight": {
+            "type": "number"
+          },
           "tolerations": {
             "type": "array",
             "items": {

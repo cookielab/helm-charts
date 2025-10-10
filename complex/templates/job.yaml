@@ -12,6 +12,7 @@ metadata:
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: {{ $component.weight | default "0" | quote }}
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
 spec:
   backoffLimit: 0
