@@ -45,6 +45,7 @@ enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- $localVolumeMounts := .volumeMounts }}
 {{- $configMaps := $globalVolumeMounts.configMaps }}
 {{- $secrets := $globalVolumeMounts.secrets }}
+{{- $emptyDirs := $globalVolumeMounts.emptyDirs }}
 {{- if $localVolumeMounts }}
 {{- if hasKey $localVolumeMounts "configMaps" }}
 {{- $configMaps = $localVolumeMounts.configMaps }}
@@ -52,8 +53,11 @@ enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- if hasKey $localVolumeMounts "secrets" }}
 {{- $secrets = $localVolumeMounts.secrets }}
 {{- end }}
+{{- if hasKey $localVolumeMounts "emptyDirs" }}
+{{- $emptyDirs = $localVolumeMounts.emptyDirs }}
 {{- end }}
-{{- if or $configMaps $secrets .volumes }}
+{{- end }}
+{{- if or $configMaps $secrets $emptyDirs .volumes }}
 volumes:
 {{- with $configMaps }}
 {{- range . }}
@@ -67,6 +71,13 @@ volumes:
   - name: {{ .name }}
     secret:
       secretName: {{ .secretName }}
+{{- end }}
+{{- end }}
+{{- with $emptyDirs }}
+{{- range . }}
+  - name: {{ .name }}
+    emptyDir:
+      sizeLimit: {{ .sizeLimit }}
 {{- end }}
 {{- end }}
 {{- if .volumes }}
