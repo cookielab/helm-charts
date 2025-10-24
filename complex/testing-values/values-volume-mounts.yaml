@@ -19,6 +19,11 @@ global:
           secretName: app-shared-secret
           mountPath: /app/secrets
           readOnly: true
+      emptyDirs:
+        - name: emptydir
+          mountPath: /empty
+          readOnly: false
+          sizeLimit: 100Mi
 
 configMaps:
   app-shared-config:
@@ -141,6 +146,11 @@ components:
           secretName: scheduler-specific-secrets
           mountPath: /app/scheduler-secrets
           readOnly: true
+      emptyDirs:
+        - name: emptydir2
+          mountPath: /empty2
+          readOnly: false
+          sizeLimit: 100Mi
 
   # Component with empty volumeMounts to explicitly exclude all global volumes
   maintenance:
