@@ -66,7 +66,7 @@ volumeMounts:
 {{- range . }}
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
-    readOnly: {{ .readOnly | default true }}
+    readOnly: {{ .readOnly | default false }}
 {{- end }}
 {{- end }}
 {{- end }}
