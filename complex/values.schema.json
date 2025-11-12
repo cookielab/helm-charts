@@ -942,7 +942,8 @@
           "$ref": "#/definitions/startupProbe"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": []
     },
     "envsValues": {
       "type": "object",
