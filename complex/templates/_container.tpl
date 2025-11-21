@@ -29,6 +29,7 @@ securityContext:
 {{- $configMaps := $globalVolumeMounts.configMaps }}
 {{- $secrets := $globalVolumeMounts.secrets }}
 {{- $emptyDirs := $globalVolumeMounts.emptyDirs }}
+{{- $others := $globalVolumeMounts.others }}
 {{- if .specific.volumeMounts }}
 {{- if hasKey .specific.volumeMounts "configMaps" }}
 {{- $configMaps = .specific.volumeMounts.configMaps }}
@@ -39,8 +40,11 @@ securityContext:
 {{- if hasKey .specific.volumeMounts "emptyDirs" }}
 {{- $emptyDirs = .specific.volumeMounts.emptyDirs }}
 {{- end }}
+{{- if hasKey .specific.volumeMounts "others" }}
+{{- $others = .specific.volumeMounts.others }}
 {{- end }}
-{{- if or $configMaps $secrets $emptyDirs }}
+{{- end }}
+{{- if or $configMaps $secrets $emptyDirs $others }}
 volumeMounts:
 {{- with $configMaps }}
 {{- range . }}
@@ -67,6 +71,16 @@ volumeMounts:
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
     readOnly: {{ .readOnly | default false }}
+{{- end }}
+{{- end }}
+{{- with $others }}
+{{- range . }}
+  - name: {{ .name }}
+    mountPath: {{ .mountPath }}
+    readOnly: {{ .readOnly | default false }}
+    {{- if .subPath }}
+    subPath: {{ .subPath }}
+    {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
