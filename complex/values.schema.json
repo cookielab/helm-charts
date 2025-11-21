@@ -1954,6 +1954,58 @@
               "type": "object"
             }
           },
+          "persistentVolumeClaim": {
+            "description": "PersistentVolumeClaim configuration for this component",
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "string",
+                "description": "Storage size (e.g., 1Gi, 10Gi)",
+                "default": "1Gi"
+              },
+              "accessModes": {
+                "type": "array",
+                "description": "Access modes for the PVC",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany",
+                    "ReadWriteOncePod"
+                  ]
+                },
+                "default": ["ReadWriteOnce"]
+              },
+              "storageClassName": {
+                "type": "string",
+                "description": "Storage class name for the PVC"
+              },
+              "selector": {
+                "type": "object",
+                "description": "Label selector for binding to specific PVs"
+              },
+              "volumeName": {
+                "type": "string",
+                "description": "Name of the PersistentVolume to bind to"
+              },
+              "labels": {
+                "type": "object",
+                "description": "Additional labels for the PVC",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "annotations": {
+                "type": "object",
+                "description": "Additional annotations for the PVC",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           "imagePullSecrets": {
             "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",
             "type": "array",

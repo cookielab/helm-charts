@@ -1,0 +1,61 @@
+global:
+  metadata:
+    partOf: accur8vision
+  nodeSelector:
+    workload.k8s/apps: allowed
+  container:
+    image:
+      repository: your-registry/your-app
+      tag: latest
+    envs:
+      values:
+        NODE_ENV: development
+        PORT: "4000"
+        DATABASE_PATH: "/opt/app/data/db.sqlite"
+
+components:
+  app:
+    type: http
+    command:
+      - node
+      - dist/index.js
+    ports:
+      - port: 4000
+        name: http
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 4000
+          path: /health
+        periodSeconds: 10
+      livenessProbe:
+        httpGet:
+          port: 4000
+          path: /health
+        periodSeconds: 30
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        kubernetes.io/ingress.class: traefik
+      className: traefik
+      hosts:
+        - host: accur8vision-dev.cookielab.dev
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 4000
+      tls:
+        - hosts:
+            - accur8vision-dev.cookielab.dev
+          secretName: cert-accur8vision-dev
+    persistentVolumeClaim:
+      size: 1Gi
+      accessModes:
+        - ReadWriteOnce
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /opt/app/data
+          readOnly: false
+

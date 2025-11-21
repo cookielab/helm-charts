@@ -1,0 +1,42 @@
+{{- range $componentName, $component := .Values.components }}
+{{- if $component.persistentVolumeClaim }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $.Chart.Name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/component: {{ $componentName }}
+    {{- with $component.persistentVolumeClaim.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $component.persistentVolumeClaim.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range $component.persistentVolumeClaim.accessModes | default (list "ReadWriteOnce") }}
+    - {{ . }}
+    {{- end }}
+  {{- with $component.persistentVolumeClaim.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $component.persistentVolumeClaim.size | default "1Gi" }}
+  {{- with $component.persistentVolumeClaim.selector }}
+  selector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $component.persistentVolumeClaim.volumeName }}
+  volumeName: {{ . }}
+  {{- end }}
+{{- end }}
+{{- end }}
+

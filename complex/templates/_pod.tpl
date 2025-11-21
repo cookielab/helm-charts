@@ -57,7 +57,7 @@ enableServiceLinks: {{ default "False" .enableServiceLinks }}
 {{- $emptyDirs = $localVolumeMounts.emptyDirs }}
 {{- end }}
 {{- end }}
-{{- if or $configMaps $secrets $emptyDirs .volumes }}
+{{- if or $configMaps $secrets $emptyDirs .volumes .persistentVolumeClaim }}
 volumes:
 {{- with $configMaps }}
 {{- range . }}
@@ -80,8 +80,13 @@ volumes:
       sizeLimit: {{ .sizeLimit }}
 {{- end }}
 {{- end }}
+{{- if .persistentVolumeClaim }}
+  - name: data
+    persistentVolumeClaim:
+      claimName: {{ .componentName }}
+{{- end }}
 {{- if .volumes }}
-{{ toYaml .volumes | indent 2 }}
+{{ tpl (toYaml .volumes) .root | indent 2 }}
 {{- end }}
 {{- end }}
 {{- end -}}
