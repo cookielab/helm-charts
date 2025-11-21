@@ -1245,6 +1245,32 @@
               "mountPath"
             ]
           }
+        },
+        "others": {
+          "type": "array",
+          "description": "Custom volume mounts for persistent volumes and other volume types",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "mountPath": {
+                "type": "string"
+              },
+              "readOnly": {
+                "type": "boolean",
+                "default": false
+              },
+              "subPath": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "mountPath"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -1920,6 +1946,13 @@
           },
           "volumeMounts": {
             "$ref": "#/definitions/volumeMounts"
+          },
+          "volumes": {
+            "description": "Custom volumes to attach to the pod (e.g., persistentVolumeClaim, hostPath, etc.)",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "imagePullSecrets": {
             "description": "List of references to secrets in the same namespace to use for pulling any images. Overrides global imagePullSecrets if specified.",
