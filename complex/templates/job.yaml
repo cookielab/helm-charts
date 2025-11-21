@@ -27,7 +27,7 @@ spec:
         {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
         {{- end }}
     spec:
-      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $.Values.global.metadata "kubeLabels" $kubeLabels "restartPolicy" "Never" "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts) | indent 6 | trim }}
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $.Values.global.metadata "kubeLabels" $kubeLabels "restartPolicy" "Never" "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes) | indent 6 | trim }}
 
 {{ end -}}
 {{- end -}}
