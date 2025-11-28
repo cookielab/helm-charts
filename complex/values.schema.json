@@ -1653,14 +1653,12 @@
               "cpuThresholdPercent": {
                 "type": "number",
                 "format": "int32",
-                "minimum": 0,
-                "maximum": 99
+                "minimum": 0
               },
               "memThresholdPercent": {
                 "type": "integer",
                 "format": "int32",
-                "minimum": 0,
-                "maximum": 99
+                "minimum": 0
               },
               "scaleUp": {
                 "type": "object",
