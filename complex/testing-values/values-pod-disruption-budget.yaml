@@ -34,3 +34,13 @@ components:
       minAvailable: 1
       extraMatchLabels:
         fake.label: fake-value
+  scheduler:
+    type: consumer
+    replicas: 3
+    pdb:
+      maxUnavailable: "33%"
+  processor:
+    type: consumer
+    replicas: 5
+    pdb:
+      minAvailable: "50%"
