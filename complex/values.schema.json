@@ -1838,8 +1838,17 @@
                 "type": "object",
                 "properties": {
                   "maxUnavailable": {
-                    "type": "integer",
-                    "description": "Maximum number of pods that can be unavailable at any time."
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]+%$"
+                      }
+                    ],
+                    "description": "Maximum number of pods that can be unavailable at any time. Can be an absolute number (e.g., 1) or a percentage (e.g., 10%)."
                   },
                   "extraMatchLabels": {
                     "type": "object",
@@ -1858,8 +1867,17 @@
                 "type": "object",
                 "properties": {
                   "minAvailable": {
-                    "type": "integer",
-                    "description": "Minimum number of pods that must be available at any time."
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]+%$"
+                      }
+                    ],
+                    "description": "Minimum number of pods that must be available at any time. Can be an absolute number (e.g., 1) or a percentage (e.g., 10%)."
                   },
                   "extraMatchLabels": {
                     "type": "object",
