@@ -65,6 +65,45 @@ spec:
         start: {{ $trigger.start | quote }}
         end: {{ $trigger.end | quote }}
 
+    {{- else if eq $trigger.type "prometheus" }}
+      {{- if not $trigger.serverAddress }}
+        {{- fail (printf "Prometheus trigger for '%s' is missing required field 'serverAddress'." $componentName) }}
+      {{- end }}
+      {{- if and (not $trigger.metricName) (not $trigger.query) }}
+        {{- fail (printf "Prometheus trigger for '%s' must have either 'metricName' or 'query'." $componentName) }}
+      {{- end }}
+      {{- if not $trigger.threshold }}
+        {{- fail (printf "Prometheus trigger for '%s' is missing required field 'threshold'." $componentName) }}
+      {{- end }}
+    - type: prometheus
+      metadata:
+        serverAddress: {{ $trigger.serverAddress | quote }}
+        threshold: {{ $trigger.threshold }}
+        {{- if $trigger.metricName }}
+        metricName: {{ $trigger.metricName | quote }}
+        {{- end }}
+        {{- if $trigger.query }}
+        query: {{ $trigger.query | quote }}
+        {{- end }}
+        {{- if $trigger.activationThreshold }}
+        activationThreshold: {{ $trigger.activationThreshold }}
+        {{- end }}
+        {{- if $trigger.ignoreNullValues }}
+        ignoreNullValues: {{ $trigger.ignoreNullValues | quote }}
+        {{- end }}
+        {{- if $trigger.unsafeSsl }}
+        unsafeSsl: {{ $trigger.unsafeSsl | quote }}
+        {{- end }}
+        {{- if $trigger.customHeaders }}
+        customHeaders: {{ $trigger.customHeaders | quote }}
+        {{- end }}
+        {{- if $trigger.namespace }}
+        namespace: {{ $trigger.namespace | quote }}
+        {{- end }}
+        {{- if $trigger.queryParameters }}
+        queryParameters: {{ $trigger.queryParameters | quote }}
+        {{- end }}
+
     {{- else }}
       {{- fail (printf "Unknown trigger type '%s' in component '%s'" $trigger.type $componentName) }}
     {{- end }}

@@ -37,3 +37,17 @@ components:
           start: "0 6 * * *"
           end: "0 18 * * *"
           desiredReplicas: 2
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          metricName: http_requests_total
+          threshold: 100.5
+          activationThreshold: 50.25
+          ignoreNullValues: true
+        - type: prometheus
+          serverAddress: https://prometheus.example.com:9090
+          query: 'sum(rate(http_requests_total[5m]))'
+          threshold: 200.75
+          unsafeSsl: true
+          customHeaders: "X-Custom-Header:value1,X-Another-Header:value2"
+          namespace: "monitoring"
+          queryParameters: "timeout=30s"
