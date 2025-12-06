@@ -117,6 +117,65 @@
       },
       "additionalProperties": false
     },
+    "kedaTriggerPrometheus": {
+      "type": "object",
+      "required": ["serverAddress", "threshold"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "prometheus"
+        },
+        "serverAddress": {
+          "type": "string",
+          "description": "The address of the Prometheus server"
+        },
+        "threshold": {
+          "type": "number",
+          "description": "The threshold value to trigger scaling"
+        },
+        "metricName": {
+          "type": "string",
+          "description": "The name of the metric to query (required if query is not provided)"
+        },
+        "query": {
+          "type": "string",
+          "description": "PromQL query to execute (required if metricName is not provided)"
+        },
+        "activationThreshold": {
+          "type": "number",
+          "description": "Optional activation threshold value"
+        },
+        "ignoreNullValues": {
+          "type": "boolean",
+          "description": "Ignore null values in query results"
+        },
+        "unsafeSsl": {
+          "type": "boolean",
+          "description": "Skip SSL certificate verification"
+        },
+        "customHeaders": {
+          "type": "string",
+          "description": "Comma-separated list of custom headers to include in requests"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Namespace for the Prometheus query"
+        },
+        "queryParameters": {
+          "type": "string",
+          "description": "Query parameters to append to the Prometheus query URL"
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": ["metricName"]
+        },
+        {
+          "required": ["query"]
+        }
+      ]
+    },
     "livenessProbe": {
       "description": "Periodic probe of container liveness. Container will be restarted if the probe fails. Cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
       "type": "object",
@@ -1951,6 +2010,9 @@
                     },
                     {
                       "$ref": "#/definitions/kedaTriggerCron"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerPrometheus"
                     }
                   ]
                 },
