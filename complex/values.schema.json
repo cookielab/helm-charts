@@ -1518,7 +1518,8 @@
               "http",
               "http-internal",
               "consumer",
-              "cronjob"
+              "cronjob",
+              "ingress"
             ]
           },
           "weight": {
@@ -1627,6 +1628,18 @@
                               "Prefix",
                               "ImplementationSpecific"
                             ]
+                          },
+                          "servicePort": {
+                            "type": "integer",
+                            "description": "Port number for the backend service"
+                          },
+                          "externalService": {
+                            "type": "string",
+                            "description": "Route to external service not managed by this chart"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "description": "Port number for the backend service (alias for servicePort)"
                           }
                         },
                         "required": [
@@ -2210,6 +2223,46 @@
             "required": [
               "schedule",
               "command"
+            ]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "ingress"
+              },
+              "replicas": {
+                "type": "null"
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "command": {
+                "type": "null"
+              },
+              "args": {
+                "type": "null"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "targetGroups": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              },
+              "probes": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "ingress"
             ]
           }
         ]
