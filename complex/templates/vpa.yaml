@@ -1,6 +1,6 @@
 ### In 1.33 should be released InPlacePodVerticalScaling
 {{- range $componentName, $component := .Values.components -}}
-{{- if and (ne $component.type "cronjob") (ne $component.type "pre-job") (and $component.vpa $component.vpa.enabled) -}}
+{{- if and (ne $component.type "cronjob") (ne $component.type "pre-job") (ne $component.type "ingress") (and $component.vpa $component.vpa.enabled) -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---
 apiVersion: autoscaling.k8s.io/v1

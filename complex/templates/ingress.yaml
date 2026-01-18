@@ -1,5 +1,5 @@
 {{- range $componentName, $component := .Values.components -}}
-{{- if and (eq $component.type "http") $component.ingress -}}
+{{- if and (or (eq $component.type "http") (eq $component.type "ingress")) $component.ingress -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---
 apiVersion: networking.k8s.io/v1
@@ -27,9 +27,13 @@ spec:
         pathType: {{ .pathType | default "Prefix" }}
         backend:
           service:
+            {{- if .externalService }}
+            name: {{ .externalService }}
+            {{- else }}
             name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
+            {{- end }}
             port:
-              number: {{ .servicePort | default 80 }}
+              number: {{ .port | default .servicePort | default 80 }}
       {{- end }}
   {{- end }}
   {{- with $component.ingress.tls }}

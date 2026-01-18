@@ -1,6 +1,6 @@
 {{- range $componentName, $component := $.Values.components -}}
 {{- if not (empty $component.hpa) -}}
-{{- if and $component.hpa.enabled (or (ne $component.type "cronjob") (ne $component.type "pre-job")) -}}
+{{- if and $component.hpa.enabled (and (ne $component.type "cronjob") (ne $component.type "pre-job") (ne $component.type "ingress")) -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---
 apiVersion: autoscaling/v2
