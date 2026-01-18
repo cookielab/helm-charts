@@ -49,6 +49,53 @@ One-time jobs that run before the main application (e.g., migrations).
 
 **Creates**: Job
 
+### 6. Ingress Components (`type: ingress`)
+Standalone ingress resources that route to external services without creating deployments.
+
+**Creates**: Ingress only (no Deployment or Service)
+
+**Use Cases**:
+- API documentation aggregators
+- Reverse proxy configurations
+- Routing to services managed by other charts
+- Multiple ingress resources with different authentication
+
+**Key Features**:
+- Route to external services using `externalService` field in paths
+- Create multiple independent ingress resources (one per component)
+- Full support for AWS ALB and NGINX ingress controllers
+- Custom annotations for authentication (OIDC, etc.)
+- Support for multiple hosts and TLS configurations
+
+**Example**:
+```yaml
+components:
+  api-docs-aggregator:
+    type: ingress
+    ingress:
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/healthcheck-path: "/-/health"
+      hosts:
+        - host: docs.example.com
+          paths:
+            - path: /docs/service1
+              pathType: Prefix
+              externalService: service1-svc
+              port: 80
+            - path: /docs/service2
+              pathType: Prefix
+              externalService: service2-svc
+              port: 8080
+```
+
+See `testing-values/values-ingress-only.yaml` for complete examples including:
+- Multiple ingress resources with different authentication
+- OIDC/SSO integration
+- Multi-domain routing
+- Path-based routing patterns
+
 ## Configuration Structure
 
 ### Global vs Component-Specific Configuration
@@ -274,6 +321,7 @@ The following complete configuration examples are available in the `testing-valu
 - [`values-consumer.yaml`](testing-values/values-consumer.yaml) - Consumer workloads
 - [`values-cronjob.yaml`](testing-values/values-cronjob.yaml) - Scheduled jobs
 - [`values-hpa.yaml`](testing-values/values-hpa.yaml) - Auto-scaling configuration
+- [`values-ingress-only.yaml`](testing-values/values-ingress-only.yaml) - Standalone ingress configurations
 
 ## Requirements
 

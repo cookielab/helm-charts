@@ -1,0 +1,125 @@
+# Example: Standalone ingress components without any deployments
+# Use case: API documentation aggregators, reverse proxy configurations,
+# routing to services managed by other charts
+
+global:
+  metadata:
+    gitlab:
+      app: docs-aggregator
+      env: dev
+  container:
+    image:
+      repository: nginx  # Not used for ingress-only components, but required by schema
+      tag: latest
+
+components:
+  # Example 1: Public API documentation aggregator
+  # Routes to multiple external services without authentication
+  public-docs-aggregator:
+    type: ingress
+    ingress:
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/healthcheck-path: "/-/health-checks/liveness"
+        alb.ingress.kubernetes.io/ssl-redirect: "443"
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+        alb.ingress.kubernetes.io/group.name: "public-docs"
+      hosts:
+        - host: docs.example.com
+          paths:
+            - path: /docs/admin
+              pathType: Prefix
+              externalService: admin-admin
+              port: 80
+            - path: /docs/catalogue
+              pathType: Prefix
+              externalService: catalogue-catalogue
+              port: 80
+            - path: /docs/user-service
+              pathType: Prefix
+              externalService: user-service-api
+              port: 8080
+            - path: /docs/payment
+              pathType: Prefix
+              externalService: payment-service
+              port: 3000
+
+  # Example 2: Private admin docs with OIDC authentication
+  # Demonstrates different authentication for different ingress resources
+  private-admin-docs:
+    type: ingress
+    ingress:
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/group.name: "private-docs"
+        alb.ingress.kubernetes.io/auth-type: oidc
+        alb.ingress.kubernetes.io/auth-idp-oidc: '{"issuer": "https://sso.example.com/auth/realms/main", "authorizationEndpoint": "https://sso.example.com/auth/realms/main/protocol/openid-connect/auth", "tokenEndpoint": "https://sso.example.com/auth/realms/main/protocol/openid-connect/token", "userInfoEndpoint": "https://sso.example.com/auth/realms/main/protocol/openid-connect/userinfo", "clientId": "alb-ingress", "clientSecret": "secret-value"}'
+        alb.ingress.kubernetes.io/auth-scope: "openid profile email"
+        alb.ingress.kubernetes.io/auth-on-unauthenticated-request: authenticate
+      hosts:
+        - host: admin-docs.example.com
+          paths:
+            - path: /internal/monitoring
+              pathType: Prefix
+              externalService: monitoring-service
+              port: 9090
+            - path: /internal/logs
+              pathType: Prefix
+              externalService: logging-service
+              port: 5601
+
+  # Example 3: Multiple domains with different routing
+  api-gateway:
+    type: ingress
+    ingress:
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/healthcheck-path: "/health"
+      hosts:
+        - host: api-v1.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: api-v1-service
+              port: 8080
+        - host: api-v2.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: api-v2-service
+              port: 8080
+      tls:
+        - secretName: api-tls-cert
+          hosts:
+            - api-v1.example.com
+            - api-v2.example.com
+
+  # Example 4: Path-based routing without host specification
+  # Routes all traffic on default host to different backend services
+  microservices-router:
+    type: ingress
+    ingress:
+      className: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/rewrite-target: /$2
+      hosts:
+        - host: services.example.com
+          paths:
+            - path: /auth(/|$)(.*)
+              pathType: Prefix
+              externalService: auth-service
+              port: 8080
+            - path: /users(/|$)(.*)
+              pathType: Prefix
+              externalService: user-service
+              port: 8080
+            - path: /products(/|$)(.*)
+              pathType: Prefix
+              externalService: product-service
+              port: 8080
