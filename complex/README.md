@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.0.5](https://img.shields.io/badge/Version-1.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.4.0](https://img.shields.io/badge/Version-1.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -95,6 +95,73 @@ See `testing-values/values-ingress-only.yaml` for complete examples including:
 - OIDC/SSO integration
 - Multi-domain routing
 - Path-based routing patterns
+
+## Traefik Middlewares
+
+The chart supports defining Traefik Middleware resources at both global and component levels.
+
+> **Note**: To use this feature, the Traefik Custom Resource Definitions (CRDs) must be installed in the cluster.
+> See [Traefik CRD Documentation](https://doc.traefik.io/traefik/reference/install-configuration/providers/kubernetes/kubernetes-crd/) for details.
+> See [Traefik Middleware Documentation](https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/crd/http/middleware/) for details.
+
+### Defining Middlewares
+
+**Global Middlewares** (`global.traefikMiddlewares`) are created once and can be referenced by any component:
+
+```yaml
+global:
+  traefikMiddlewares:
+    - name: security-headers
+      spec:
+        headers:
+          stsSeconds: 31536000
+          stsIncludeSubdomains: true
+```
+
+**Component Middlewares** (`components.<name>.traefikMiddlewares`) are created for that specific component:
+
+```yaml
+components:
+  api:
+    traefikMiddlewares:
+      - name: strip-prefix
+        spec:
+          stripPrefix:
+            prefixes:
+              - /api
+```
+
+### Referencing Middlewares in Ingress
+
+Use `ingress.traefikMiddlewareRefs` to apply middlewares to an ingress (sets `traefik.ingress.kubernetes.io/router.middlewares` annotation):
+
+```yaml
+components:
+  api:
+    ingress:
+      className: traefik
+      hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 8080
+      traefikMiddlewareRefs:
+        - global:security-headers    # Reference global middleware
+        - strip-prefix               # Reference component middleware
+        - auth@file                  # External middleware reference
+    traefikMiddlewares:
+      - name: strip-prefix
+        spec:
+          stripPrefix:
+            prefixes:
+              - /api
+```
+
+**Reference formats:**
+- `global:<name>` - Global middleware (e.g., `global:security-headers`)
+- `<name>` - Component middleware (e.g., `strip-prefix`)
+- `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`)
 
 ## Configuration Structure
 
