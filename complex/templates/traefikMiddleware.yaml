@@ -1,0 +1,32 @@
+{{- /* Global Traefik Middlewares - created once */ -}}
+{{- if .Values.global.traefikMiddlewares -}}
+{{- $kubeLabels := (merge (dict "name" .Release.Name "instance" (printf "%s-%d" .Release.Name .Release.Revision)) .Values.global.metadata) -}}
+{{- range $middleware := .Values.global.traefikMiddlewares }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $.Release.Name }}-{{ $middleware.name }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+spec:
+  {{- toYaml $middleware.spec | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- /* Component-specific Traefik Middlewares */ -}}
+{{- range $componentName, $component := .Values.components -}}
+{{- if $component.traefikMiddlewares -}}
+{{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+{{- range $middleware := $component.traefikMiddlewares }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}-{{ $middleware.name }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+spec:
+  {{- toYaml $middleware.spec | nindent 2 }}
+{{- end }}
+{{- end -}}
+{{- end -}}

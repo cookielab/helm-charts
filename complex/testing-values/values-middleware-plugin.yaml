@@ -1,0 +1,106 @@
+global:
+  container:
+    image:
+      repository: cookielab/test-app
+      tag: 1.0.0
+  # Global Traefik Middleware definitions - created once, reusable by any component
+  traefikMiddlewares:
+    - name: global-security-headers
+      spec:
+        headers:
+          customResponseHeaders:
+            X-Frame-Options: "DENY"
+            X-Content-Type-Options: "nosniff"
+          stsSeconds: 31536000
+          stsIncludeSubdomains: true
+
+components:
+  # Example 1: OIDC Authentication Plugin
+  oidc-app:
+    type: http
+    ports:
+      - port: 8080
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health
+    ingress:
+      className: traefik
+      hosts:
+        - host: app.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 8080
+      # Reference middlewares for this ingress
+      traefikMiddlewareRefs:
+        - global:global-security-headers # Reference global middleware
+        - oidc # Reference component middleware (defined below)
+    # Define component-specific middleware
+    traefikMiddlewares:
+      - name: oidc
+        spec:
+          plugin:
+            traefik-oidc-auth:
+              Secret: "urn:k8s:secret:oidc-secret:pluginSecret"
+              Provider:
+                ClientId: "abcd-12345"
+                ClientSecret: "urn:k8s:secret:oidc-secret:providerClientSecret"
+
+  # Example 2: Strip Prefix Middleware
+  api:
+    type: http
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 3000
+          path: /health
+    ingress:
+      className: traefik
+      hosts:
+        - host: api.example.com
+          paths:
+            - path: /v1
+              pathType: Prefix
+              servicePort: 3000
+      traefikMiddlewareRefs:
+        - global:global-security-headers
+        - strip-prefix
+    traefikMiddlewares:
+      - name: strip-prefix
+        spec:
+          stripPrefix:
+            prefixes:
+              - /v1
+
+  # Example 3: Rate Limiting with external middleware reference
+  public-api:
+    type: http
+    ports:
+      - port: 8080
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health
+    ingress:
+      className: traefik
+      hosts:
+        - host: public-api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 8080
+      traefikMiddlewareRefs:
+        - global:global-security-headers
+        - rate-limit
+        - auth@file # External middleware reference
+    traefikMiddlewares:
+      - name: rate-limit
+        spec:
+          rateLimit:
+            average: 100
+            burst: 50
