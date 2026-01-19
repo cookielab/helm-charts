@@ -1,6 +1,13 @@
 {{- range $componentName, $component := .Values.components -}}
-{{- if and (or (eq $component.type "http") (eq $component.type "ingress")) $component.ingress -}}
+{{ if and (or (eq $component.type "http") (eq $component.type "ingress")) $component.ingress -}}
+{{- if and $component.ingress.traefikMiddlewareRefs (hasKey ($component.ingress.annotations | default dict) "traefik.ingress.kubernetes.io/router.middlewares") }}
+{{- fail (printf "Component '%s' cannot use both 'traefikMiddlewareRefs' and manual 'traefik.ingress.kubernetes.io/router.middlewares' annotation. Use only one." $componentName) }}
+{{- end }}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
+{{- $middlewareRefs := "" -}}
+{{- if $component.ingress.traefikMiddlewareRefs -}}
+{{- $middlewareRefs = include "traefik.middlewareRefs" (dict "refs" $component.ingress.traefikMiddlewareRefs "componentName" $componentName "Release" $.Release) -}}
+{{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -9,9 +16,12 @@ metadata:
   labels:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
-  {{- with $component.ingress.annotations }}
+  {{- if or $component.ingress.annotations $middlewareRefs }}
   annotations:
-    {{- range $key, $value := . }}
+    {{- if $middlewareRefs }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $middlewareRefs | quote }}
+    {{- end }}
+    {{- range $key, $value := $component.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
   {{- end }}
@@ -46,5 +56,5 @@ spec:
       secretName: {{ .secretName }}
     {{- end }}
   {{- end }}
-{{- end -}}
+{{- end }}
 {{- end -}}
