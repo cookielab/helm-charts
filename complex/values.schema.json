@@ -2710,6 +2710,13 @@
             "type": "string"
           }
         },
+        "initContainers": {
+            "description": "InitContainers defines containers to run before the main container starts.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/container"
+            }
+          },
         "traefikMiddlewares": {
           "$ref": "#/definitions/traefikMiddlewares"
         }
@@ -2837,6 +2844,13 @@
                   }
                 }
               }
+            }
+          },
+          "initContainers": {
+            "description": "InitContainers defines containers to run before the main container starts.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/container"
             }
           },
           "traefikMiddlewares": {
