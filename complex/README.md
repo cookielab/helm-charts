@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.5.0](https://img.shields.io/badge/Version-1.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.5.1](https://img.shields.io/badge/Version-1.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -162,6 +162,65 @@ components:
 - `global:<name>` - Global middleware (e.g., `global:security-headers`)
 - `<name>` - Component middleware (e.g., `strip-prefix`)
 - `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`)
+
+## Init Containers
+
+The chart supports defining init containers that run before the main container starts. Init containers are useful for:
+
+- Running setup scripts or database migrations
+- Waiting for dependent services to be ready
+- Downloading configuration files or secrets
+- Setting up volumes with proper permissions
+
+### Defining Init Containers
+
+Init containers are defined at the component level using `initContainers`:
+
+```yaml
+components:
+  api:
+    type: http
+    ports:
+      - port: 3000
+    initContainers:
+      wait-for-db:
+        image:
+          repository: busybox
+          tag: "1.36"
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z postgres-service 5432; do
+              echo "Waiting for database..."
+              sleep 2
+            done
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64M"
+          limits:
+            cpu: "100m"
+            memory: "128M"
+```
+
+### Init Container Properties
+
+Each init container supports the same properties as regular containers:
+
+| Property | Description | Required |
+|----------|-------------|----------|
+| `image.repository` | Container image repository | Yes |
+| `image.tag` | Container image tag | Yes |
+| `image.pullPolicy` | Image pull policy (IfNotPresent, Always, Never) | No |
+| `command` | Override container entrypoint | No |
+| `args` | Arguments to the entrypoint | No |
+| `envs.values` | Environment variables as key-value pairs | No |
+| `envs.from.configMaps` | Load env vars from ConfigMaps | No |
+| `envs.from.secrets` | Load env vars from Secrets | No |
+| `resources` | CPU/memory requests and limits | No |
+| `volumeMounts` | Mount ConfigMaps or Secrets as files | No |
+
 
 ## Configuration Structure
 
