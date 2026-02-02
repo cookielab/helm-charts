@@ -7,12 +7,33 @@ global:
       tag: latest
 
 components:
+  # Example 1: Create a new PVC with custom annotations (e.g., for EFS access point)
   web:
     type: http
     replicas: 1
     ports:
       - port: 80
         name: http
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 80
+          path: /
+        periodSeconds: 10
+      livenessProbe:
+        httpGet:
+          port: 80
+          path: /
+        periodSeconds: 30
+    ingress:
+      enabled: true
+      className: nginx
+      hosts:
+        - host: web.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 80
     persistentVolumeClaim:
       size: 5Gi
       accessModes:
@@ -30,6 +51,26 @@ components:
     ports:
       - port: 3000
         name: http
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 3000
+          path: /health
+        periodSeconds: 10
+      livenessProbe:
+        httpGet:
+          port: 3000
+          path: /health
+        periodSeconds: 30
+    ingress:
+      enabled: true
+      className: nginx
+      hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
     persistentVolumeClaim:
       useExistingClaim: true
       existingClaimName: "shared-efs-pvc"
