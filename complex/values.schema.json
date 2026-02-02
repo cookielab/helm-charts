@@ -3345,6 +3345,15 @@
                 "type": "string",
                 "description": "Storage class name for the PVC"
               },
+              "useExistingClaim": {
+                "type": "boolean",
+                "description": "If true, use an existing PVC instead of creating a new one. Requires existingClaimName to be set.",
+                "default": false
+              },
+              "existingClaimName": {
+                "type": "string",
+                "description": "Name of an existing PVC to use when useExistingClaim is true"
+              },
               "selector": {
                 "type": "object",
                 "description": "Label selector for binding to specific PVs"
