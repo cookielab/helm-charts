@@ -1,5 +1,6 @@
 {{- range $componentName, $component := .Values.components }}
 {{- if $component.persistentVolumeClaim }}
+{{- if not $component.persistentVolumeClaim.useExistingClaim }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -37,6 +38,7 @@ spec:
   {{- with $component.persistentVolumeClaim.volumeName }}
   volumeName: {{ . }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 

@@ -81,6 +81,7 @@ jobs:
           helm lint complex -f complex/testing-values/values-configmap.yaml
           helm lint complex -f complex/testing-values/values-volume-mounts.yaml
           helm lint complex -f complex/testing-values/values-initcontainers.yaml
+          helm lint complex -f complex/testing-values/values-pvc-efs-shared.yaml
 
   template-test:
     runs-on: ubuntu-latest
@@ -121,6 +122,7 @@ jobs:
           helm template test ./complex --debug -f complex/testing-values/values-rolling-update.yaml
           helm template test ./complex --debug -f complex/testing-values/values-pod-disruption-budget.yaml
           helm template test ./complex --debug -f complex/testing-values/values-initcontainers.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-pvc-efs-shared.yaml
           
           # Test infrastructure configurations
           helm template test ./complex --debug -f complex/testing-values/values-ingress.yaml

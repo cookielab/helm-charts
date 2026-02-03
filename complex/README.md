@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.5.2](https://img.shields.io/badge/Version-1.5.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -13,6 +13,7 @@ The **complex** Helm chart provides a comprehensive solution for deploying conta
 - **ConfigMap integration**: Environment variables and file mounting from ConfigMaps
 - **Secret integration**: Environment variables and file mounting from Secrets 
 - **Volume mounts**: Mount ConfigMaps and Secrets as files with custom paths
+- **Persistent storage**: Create new PVCs or reference existing ones for shared storage (EFS)
 - **Consumer workloads**: Support for consumer-type deployments
 - **CronJob support**: Scheduled job execution
 - **Enterprise features**: Immutable ConfigMaps, custom labels/annotations
@@ -354,6 +355,122 @@ components:
       secrets: []     # Empty array = no secret volumes
 ```
 
+## Persistent Volume Claims
+
+The chart supports creating PersistentVolumeClaims (PVCs) for components that need persistent storage. You can either create a new PVC or reference an existing one to share storage across multiple pods.
+
+### Creating a New PVC
+
+When `persistentVolumeClaim` is configured without `useExistingClaim`, the chart creates a new PVC for the component:
+
+```yaml
+components:
+  api:
+    type: http
+    persistentVolumeClaim:
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: standard
+      # Optional: Add custom annotations (e.g., for EFS access points)
+      annotations:
+        efs.csi.aws.com/access-point-id: "fsap-0123456789abcdef0"
+      # Optional: Add custom labels
+      labels:
+        storage-tier: "premium"
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /app/data
+          readOnly: false
+```
+
+**PVC Properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `size` | string | `"1Gi"` | Storage size (e.g., "1Gi", "10Gi") |
+| `accessModes` | array | `["ReadWriteOnce"]` | Access modes: `ReadWriteOnce`, `ReadOnlyMany`, `ReadWriteMany`, `ReadWriteOncePod` |
+| `storageClassName` | string | - | Storage class name for the PVC |
+| `annotations` | object | `{}` | Custom annotations (useful for storage-specific configurations) |
+| `labels` | object | `{}` | Custom labels |
+| `selector` | object | - | Label selector for binding to specific PVs |
+| `volumeName` | string | - | Name of the PersistentVolume to bind to |
+
+### Using an Existing PVC
+
+To share storage across multiple pods or reference a PVC created outside the chart, use `useExistingClaim`:
+
+```yaml
+components:
+  api:
+    type: http
+    persistentVolumeClaim:
+      useExistingClaim: true
+      existingClaimName: "shared-storage-pvc"
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /app/data
+          readOnly: false
+
+  worker:
+    type: consumer
+    persistentVolumeClaim:
+      useExistingClaim: true
+      existingClaimName: "shared-storage-pvc"  # Same PVC as api component
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /data
+          readOnly: false
+```
+
+**Benefits of Using Existing PVCs:**
+
+- **Shared storage**: Multiple pods can mount the same PVC (requires `ReadWriteMany` access mode)
+- **Pre-existing storage**: Reference PVCs created manually or by other charts
+- **Storage reuse**: Avoid creating duplicate PVCs for the same storage
+
+**Important Notes:**
+
+- When `useExistingClaim: true`, the chart does **not** create a PVC - it only references the existing one
+- The existing PVC must already exist in the same namespace
+- Ensure the PVC's access mode supports your use case (e.g., `ReadWriteMany` for multi-pod access)
+
+### Complete Example
+
+```yaml
+components:
+  # Component that creates a new PVC
+  web:
+    type: http
+    persistentVolumeClaim:
+      size: 5Gi
+      accessModes:
+        - ReadWriteMany  # Allows multiple pods to mount
+      storageClassName: efs-sc
+      annotations:
+        efs.csi.aws.com/access-point-id: "fsap-0123456789abcdef0"
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /usr/share/nginx/html
+
+  # Component that uses the existing PVC created above
+  api:
+    type: http
+    persistentVolumeClaim:
+      useExistingClaim: true
+      existingClaimName: "my-release-web"  # References the PVC created by web component
+    volumeMounts:
+      others:
+        - name: data
+          mountPath: /app/data
+```
+
+See `testing-values/values-pvc.yaml` and `testing-values/values-pvc-efs-shared.yaml` for more examples.
+
 ## Installation
 
 ```bash
@@ -444,6 +561,8 @@ The following complete configuration examples are available in the `testing-valu
 - [`values-minimal.yaml`](testing-values/values-minimal.yaml) - Basic HTTP service
 - [`values-configmap.yaml`](testing-values/values-configmap.yaml) - ConfigMap integration
 - [`values-volume-mounts.yaml`](testing-values/values-volume-mounts.yaml) - Volume mount examples
+- [`values-pvc.yaml`](testing-values/values-pvc.yaml) - PersistentVolumeClaim examples
+- [`values-pvc-efs-shared.yaml`](testing-values/values-pvc-efs-shared.yaml) - Shared storage with existing PVCs
 - [`values-consumer.yaml`](testing-values/values-consumer.yaml) - Consumer workloads
 - [`values-cronjob.yaml`](testing-values/values-cronjob.yaml) - Scheduled jobs
 - [`values-hpa.yaml`](testing-values/values-hpa.yaml) - Auto-scaling configuration

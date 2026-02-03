@@ -83,7 +83,7 @@ volumes:
 {{- if .persistentVolumeClaim }}
   - name: data
     persistentVolumeClaim:
-      claimName: {{ .componentName }}
+      claimName: {{ if .persistentVolumeClaim.useExistingClaim }}{{ .persistentVolumeClaim.existingClaimName | required "existingClaimName is required when useExistingClaim is true" }}{{ else }}{{ .componentName }}{{ end }}
 {{- end }}
 {{- if .volumes }}
 {{ tpl (toYaml .volumes) .root | indent 2 }}
