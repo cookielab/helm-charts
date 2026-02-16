@@ -1221,6 +1221,20 @@
         },
         "nodeSelector": {
           "$ref": "#/definitions/nodeSelector"
+        },
+        "hostNetwork": {
+          "description": "Use the host's network namespace. If this option is set, the ports that will be used must be specified.",
+          "type": "boolean"
+        },
+        "dnsPolicy": {
+          "description": "Set DNS policy for the pod. Defaults to 'ClusterFirst'. Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.",
+          "type": "string",
+          "enum": [
+            "ClusterFirst",
+            "ClusterFirstWithHostNet",
+            "Default",
+            "None"
+          ]
         }
       },
       "additionalProperties": false
@@ -3155,6 +3169,20 @@
           },
           "nodeSelector": {
             "$ref": "#/definitions/nodeSelector"
+          },
+          "hostNetwork": {
+            "description": "Use the host's network namespace. If this option is set, the ports that will be used must be specified.",
+            "type": "boolean"
+          },
+          "dnsPolicy": {
+            "description": "Set DNS policy for the pod. Defaults to 'ClusterFirst'. Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.",
+            "type": "string",
+            "enum": [
+              "ClusterFirst",
+              "ClusterFirstWithHostNet",
+              "Default",
+              "None"
+            ]
           },
           "service": {
             "type": "object",

@@ -1,6 +1,12 @@
 {{- define "pod.spec" -}}
 restartPolicy: {{ default "Always" .restartPolicy }}
 terminationGracePeriodSeconds: {{ default 120 .terminationGracePeriodSeconds }}
+{{- if .hostNetwork }}
+hostNetwork: {{ .hostNetwork }}
+{{- end }}
+{{- if .dnsPolicy }}
+dnsPolicy: {{ .dnsPolicy }}
+{{- end }}
 {{- with .imagePullSecrets | default .global.imagePullSecrets -}}
 {{- if . }}
 imagePullSecrets:
