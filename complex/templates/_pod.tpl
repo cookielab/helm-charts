@@ -1,6 +1,9 @@
 {{- define "pod.spec" -}}
 restartPolicy: {{ default "Always" .restartPolicy }}
 terminationGracePeriodSeconds: {{ default 120 .terminationGracePeriodSeconds }}
+{{- if .nodeName }}
+nodeName: {{ .nodeName }}
+{{- end }}
 {{- if .hostNetwork }}
 hostNetwork: {{ .hostNetwork }}
 {{- end }}

@@ -38,6 +38,6 @@ spec:
             {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 12 | trim }}
             {{- end }}
         spec:
-          {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels "restartPolicy" $component.restartPolicy "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "root" $) | indent 10 | trim }}
+          {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $kubeLabels "restartPolicy" $component.restartPolicy "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "root" $) | indent 10 | trim }}
 {{ end -}}
 {{- end -}}
