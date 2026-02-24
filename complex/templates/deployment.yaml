@@ -20,11 +20,16 @@ metadata:
 spec:
   replicas: {{ $component.replicas }}
   progressDeadlineSeconds: {{ default 300 $component.progressDeadlineSeconds }}
+  {{- if eq (default "RollingUpdate" $component.strategyType) "Recreate" }}
+  strategy:
+    type: Recreate
+  {{- else }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: {{ coalesce (index $component "rollingUpdate" | default dict).maxUnavailable $.Values.global.rollingUpdate.maxUnavailable | quote}}
       maxSurge: {{ coalesce (index $component "rollingUpdate" | default dict).maxSurge $.Values.global.rollingUpdate.maxSurge | quote}}
+  {{- end }}
   selector:
     matchLabels:
       {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 6 | trim }}
