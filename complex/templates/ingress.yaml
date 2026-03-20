@@ -1,5 +1,5 @@
 {{- range $componentName, $component := .Values.components -}}
-{{ if and (or (eq $component.type "http") (eq $component.type "ingress")) $component.ingress -}}
+{{ if and (or (eq $component.type "http") (eq $component.type "ingress")) (and $component.ingress $component.ingress.enabled) -}}
 {{- if and $component.ingress.traefikMiddlewareRefs (hasKey ($component.ingress.annotations | default dict) "traefik.ingress.kubernetes.io/router.middlewares") }}
 {{- fail (printf "Component '%s' cannot use both 'traefikMiddlewareRefs' and manual 'traefik.ingress.kubernetes.io/router.middlewares' annotation. Use only one." $componentName) }}
 {{- end }}
