@@ -1,0 +1,234 @@
+suite: KEDA Kafka and AWS SQS scaler triggers
+release:
+  name: test
+templates:
+  - templates/keda-scaledobject.yaml
+set:
+  global.container.image.repository: cookielab/deployer
+  global.container.image.tag: 1.0.0-rc2
+  components.consumer-foo.type: consumer
+  components.consumer-foo.command:
+    - bin/consume
+  components.consumer-foo.keda.minReplicaCount: 1
+  components.consumer-foo.keda.maxReplicaCount: 10
+tests:
+  - it: renders Kafka trigger with explicit awsRegion
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: orders
+          consumerGroup: order-consumers
+          lagThreshold: 10
+          awsRegion: us-east-1
+    asserts:
+      - equal:
+          path: spec.triggers[0].type
+          value: kafka
+      - equal:
+          path: spec.triggers[0].metadata.bootstrapServers
+          value: kafka:9092
+      - equal:
+          path: spec.triggers[0].metadata.topic
+          value: orders
+      - equal:
+          path: spec.triggers[0].metadata.consumerGroup
+          value: order-consumers
+      - equal:
+          path: spec.triggers[0].metadata.lagThreshold
+          value: "10"
+      - equal:
+          path: spec.triggers[0].metadata.awsRegion
+          value: us-east-1
+      - equal:
+          path: spec.triggers[0].metadata.sasl
+          value: oauthbearer
+      - equal:
+          path: spec.triggers[0].metadata.saslTokenProvider
+          value: aws_msk_iam
+
+  - it: Kafka trigger falls back to global awsRegion when not set on trigger
+    set:
+      global.keda.awsRegion: eu-west-1
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.awsRegion
+          value: eu-west-1
+
+  - it: Kafka trigger with identityOwner pod skips SASL/awsRegion fields
+    set:
+      global.keda.awsRegion: eu-west-1
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          identityOwner: pod
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.identityOwner
+          value: pod
+      - notExists:
+          path: spec.triggers[0].metadata.sasl
+      - notExists:
+          path: spec.triggers[0].metadata.saslTokenProvider
+      - notExists:
+          path: spec.triggers[0].metadata.awsRegion
+
+  - it: Kafka trigger defaults offsetResetPolicy to earliest
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.offsetResetPolicy
+          value: earliest
+
+  - it: Kafka trigger fails without any awsRegion
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+    asserts:
+      - failedTemplate:
+          errorMessage: "Kafka trigger for 'consumer-foo' is missing required field(s)."
+
+  - it: renders SQS trigger with operator identityOwner (default)
+    set:
+      components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.eu-west-1.amazonaws.com/123/test
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          awsRegion: eu-west-1
+    asserts:
+      - equal:
+          path: spec.triggers[0].type
+          value: aws-sqs-queue
+      - equal:
+          path: spec.triggers[0].metadata.awsRegion
+          value: eu-west-1
+      - equal:
+          path: spec.triggers[0].metadata.queueLength
+          value: "5"
+      - equal:
+          path: spec.triggers[0].metadata.queueURLFromEnv
+          value: SQS_QUEUE
+      - equal:
+          path: spec.triggers[0].metadata.identityOwner
+          value: operator
+      - notExists:
+          path: spec.triggers[0].authenticationRef
+
+  - it: SQS trigger with identityOwner pod adds authenticationRef
+    set:
+      components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.eu-west-1.amazonaws.com/123/test
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          awsRegion: eu-west-1
+          identityOwner: pod
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.identityOwner
+          value: pod
+      - equal:
+          path: spec.triggers[0].authenticationRef.name
+          value: consumer-foo-auth-0
+
+  - it: SQS trigger falls back to global awsRegion
+    set:
+      global.keda.awsRegion: us-east-1
+      components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.us-east-1.amazonaws.com/123/test
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.awsRegion
+          value: us-east-1
+
+  - it: SQS trigger fails without any awsRegion
+    set:
+      components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.eu-west-1.amazonaws.com/123/test
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+    asserts:
+      - failedTemplate:
+          errorMessage: "SQS trigger for 'consumer-foo' is missing required field(s)."
+
+  - it: renders Cron trigger with desiredReplicas
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: cron
+          timezone: Europe/Prague
+          start: "0 6 * * *"
+          end: "0 18 * * *"
+          desiredReplicas: 3
+    asserts:
+      - equal:
+          path: spec.triggers[0].type
+          value: cron
+      - equal:
+          path: spec.triggers[0].metadata.timezone
+          value: Europe/Prague
+      - equal:
+          path: spec.triggers[0].metadata.start
+          value: "0 6 * * *"
+      - equal:
+          path: spec.triggers[0].metadata.end
+          value: "0 18 * * *"
+      - equal:
+          path: spec.triggers[0].metadata.desiredReplicas
+          value: "3"
+
+  - it: renders multiple triggers in order
+    set:
+      global.keda.awsRegion: eu-west-1
+      components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.eu-west-1.amazonaws.com/123/test
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+        - type: cron
+          timezone: UTC
+          start: "0 0 * * *"
+          end: "0 12 * * *"
+          desiredReplicas: 2
+    asserts:
+      - lengthEqual:
+          path: spec.triggers
+          count: 2
+      - equal:
+          path: spec.triggers[0].type
+          value: aws-sqs-queue
+      - equal:
+          path: spec.triggers[1].type
+          value: cron
+
+  - it: fails on unknown trigger type
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: not-a-real-trigger
+    asserts:
+      - failedTemplate:
+          errorPattern: "Must validate at least one schema"

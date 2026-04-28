@@ -1,0 +1,122 @@
+suite: HorizontalPodAutoscaler rendering
+release:
+  name: test
+templates:
+  - templates/hpa.yaml
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: does not render an HPA when hpa is unset
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders an HPA targeting the component Deployment
+    set:
+      components.api.hpa.enabled: true
+      components.api.hpa.minReplicas: 2
+      components.api.hpa.maxReplicas: 10
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: apiVersion
+          value: autoscaling/v2
+      - equal:
+          path: metadata.name
+          value: test-api
+      - equal:
+          path: spec.scaleTargetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.scaleTargetRef.name
+          value: test-api
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+
+  - it: defaults minReplicas to component replicas when not set
+    set:
+      components.api.replicas: 4
+      components.api.hpa.enabled: true
+      components.api.hpa.maxReplicas: 10
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 4
+
+  - it: defaults CPU and memory utilization thresholds to 75
+    set:
+      components.api.hpa.enabled: true
+      components.api.hpa.maxReplicas: 5
+    asserts:
+      - equal:
+          path: spec.metrics[0].resource.name
+          value: cpu
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 75
+      - equal:
+          path: spec.metrics[1].resource.name
+          value: memory
+      - equal:
+          path: spec.metrics[1].resource.target.averageUtilization
+          value: 75
+
+  - it: honours custom CPU and memory thresholds
+    set:
+      components.api.hpa.enabled: true
+      components.api.hpa.maxReplicas: 5
+      components.api.hpa.cpuThresholdPercent: 60
+      components.api.hpa.memThresholdPercent: 80
+    asserts:
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 60
+      - equal:
+          path: spec.metrics[1].resource.target.averageUtilization
+          value: 80
+
+  - it: defaults scaleUp window to 0 and scaleDown window to 300
+    set:
+      components.api.hpa.enabled: true
+      components.api.hpa.maxReplicas: 5
+    asserts:
+      - equal:
+          path: spec.behavior.scaleUp.stabilizationWindowSeconds
+          value: 0
+      - equal:
+          path: spec.behavior.scaleDown.stabilizationWindowSeconds
+          value: 300
+
+  - it: honours custom stabilization windows
+    set:
+      components.api.hpa.enabled: true
+      components.api.hpa.maxReplicas: 5
+      components.api.hpa.scaleUp.stabilizationWindowSeconds: 120
+      components.api.hpa.scaleDown.stabilizationWindowSeconds: 600
+    asserts:
+      - equal:
+          path: spec.behavior.scaleUp.stabilizationWindowSeconds
+          value: 120
+      - equal:
+          path: spec.behavior.scaleDown.stabilizationWindowSeconds
+          value: 600
+
+  - it: renders HPA for consumer components
+    set:
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+      components.worker.replicas: 1
+      components.worker.hpa.enabled: true
+      components.worker.hpa.maxReplicas: 5
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: metadata.name
+          value: test-worker
