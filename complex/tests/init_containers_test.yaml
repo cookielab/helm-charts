@@ -1,0 +1,74 @@
+suite: initContainers propagation into Deployment pod spec
+release:
+  name: test
+templates:
+  - templates/deployment.yaml
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: omits initContainers when none are configured
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: renders a single init container with image, command and resources
+    set:
+      components.api.initContainers.wait-for-db.image.repository: busybox
+      components.api.initContainers.wait-for-db.image.tag: "1.36"
+      components.api.initContainers.wait-for-db.command:
+        - sh
+        - -c
+        - "until nc -z postgres 5432; do sleep 2; done"
+      components.api.initContainers.wait-for-db.resources.requests.cpu: 50m
+      components.api.initContainers.wait-for-db.resources.requests.memory: 64M
+      components.api.initContainers.wait-for-db.resources.requests.ephemeralStorage: 128Mi
+      components.api.initContainers.wait-for-db.resources.limits.cpu: 100m
+      components.api.initContainers.wait-for-db.resources.limits.memory: 128M
+      components.api.initContainers.wait-for-db.resources.limits.ephemeralStorage: 128Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: wait-for-db
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: busybox:1.36
+      - equal:
+          path: spec.template.spec.initContainers[0].command[0]
+          value: sh
+      - equal:
+          path: spec.template.spec.initContainers[0].resources.requests.cpu
+          value: 50m
+      - equal:
+          path: spec.template.spec.initContainers[0].resources.limits.memory
+          value: 128M
+
+  - it: renders multiple init containers in order
+    set:
+      components.api.initContainers.first-step.image.repository: busybox
+      components.api.initContainers.first-step.image.tag: "1.36"
+      components.api.initContainers.first-step.command:
+        - echo
+        - "step 1"
+      components.api.initContainers.second-step.image.repository: busybox
+      components.api.initContainers.second-step.image.tag: "1.36"
+      components.api.initContainers.second-step.command:
+        - echo
+        - "step 2"
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 2
+
+  - it: init container does not leak into main containers list
+    set:
+      components.api.initContainers.wait-for-db.image.repository: busybox
+      components.api.initContainers.wait-for-db.image.tag: "1.36"
+      components.api.initContainers.wait-for-db.command:
+        - sh
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: application
