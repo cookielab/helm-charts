@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.8.4](https://img.shields.io/badge/Version-1.8.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -221,7 +221,6 @@ Each init container supports the same properties as regular containers:
 | `envs.from.secrets` | Load env vars from Secrets | No |
 | `resources` | CPU/memory requests and limits | No |
 | `volumeMounts` | Mount ConfigMaps or Secrets as files | No |
-
 
 ## Configuration Structure
 

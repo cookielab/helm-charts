@@ -1,0 +1,44 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  edge:
+    type: http
+    replicas: 1
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    strategyType: Recreate
+    ports:
+      - port: 8443
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8443
+          path: /health-check
+          scheme: HTTPS
+      livenessProbe:
+        httpGet:
+          port: 8443
+          path: /health-check
+          scheme: HTTPS
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake
+  worker-on-host:
+    type: consumer
+    replicas: 1
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    command:
+      - bin/consume
+  scheduled-host-task:
+    type: cronjob
+    schedule: "*/5 * * * *"
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    command:
+      - bin/cron-task
