@@ -1,0 +1,168 @@
+suite: standalone ingress component type
+release:
+  name: test
+set:
+  global.container.image.repository: nginx
+  global.container.image.tag: latest
+tests:
+  - it: ingress-only component does not produce a Deployment
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend-service
+              port: 8080
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ingress-only component does not produce a Service
+    templates:
+      - templates/service.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend
+              port: 8080
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ingress-only component does not produce an HPA
+    templates:
+      - templates/hpa.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend
+              port: 8080
+      components.gateway.hpa.minReplicas: 1
+      components.gateway.hpa.maxReplicas: 5
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ingress-only component does not produce a ServiceAccount
+    templates:
+      - templates/serviceaccount.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.serviceAccountCreate: true
+      components.gateway.serviceAccountName: gateway-sa
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend
+              port: 8080
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ingress-only component does produce an Ingress resource
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend-service
+              port: 8080
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.ingressClassName
+          value: alb
+      - equal:
+          path: spec.rules[0].host
+          value: api.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: backend-service
+
+  - it: ingress backend defaults to the component service when externalService is unset
+    templates:
+      - templates/ingress.yaml
+    values:
+      - ../testing-values/values-minimal.yaml
+    set:
+      components.api.ingress.className: nginx
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              port: 3000
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: test-api
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 3000
+
+  - it: ingress accepts servicePort as alias for port for backward compatibility
+    templates:
+      - templates/ingress.yaml
+    values:
+      - ../testing-values/values-minimal.yaml
+    set:
+      components.api.ingress.className: nginx
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 3000
+
+  - it: ingress renders TLS configuration when provided
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.gateway.type: ingress
+      components.gateway.ingress.className: alb
+      components.gateway.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              externalService: backend
+              port: 80
+      components.gateway.ingress.tls:
+        - secretName: api-tls
+          hosts:
+            - api.example.com
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: api-tls
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: api.example.com

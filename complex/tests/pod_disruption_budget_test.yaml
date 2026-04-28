@@ -1,0 +1,70 @@
+suite: PodDisruptionBudget integer and percentage values
+release:
+  name: test
+templates:
+  - templates/podDisruptionBudget.yaml
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: does not create a PDB when component has no pdb config
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders integer minAvailable as a number, not a quoted string
+    set:
+      components.api.pdb.minAvailable: 1
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: renders integer maxUnavailable as a number
+    set:
+      components.api.pdb.maxUnavailable: 2
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 2
+      - notExists:
+          path: spec.minAvailable
+
+  - it: preserves percentage minAvailable as a string
+    set:
+      components.api.pdb.minAvailable: 50%
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 50%
+
+  - it: preserves percentage maxUnavailable as a string
+    set:
+      components.api.pdb.maxUnavailable: 33%
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 33%
+
+  - it: appends extraMatchLabels into the selector alongside default labels
+    set:
+      components.api.pdb.minAvailable: 1
+      components.api.pdb.extraMatchLabels:
+        custom.label: custom-value
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels["custom.label"]
+          value: custom-value
+      - exists:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+
+  - it: names the PDB after the component with a -pdb suffix
+    set:
+      components.api.pdb.minAvailable: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-api-pdb
