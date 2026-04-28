@@ -1,0 +1,43 @@
+global:
+  container:
+    image:
+      repository: cookielab/deployer
+      tag: 1.0.0-rc2
+
+components:
+  api:
+    type: http
+    replicas: 1
+    nodeName: ip-10-0-0-1.ec2.internal
+    ports:
+      - port: 3000
+    probes:
+      readinessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /health-check
+    targetGroup:
+      arn: 'arn:fake'
+      securityGroupIds:
+        - sg-fake
+  pinned-worker:
+    type: consumer
+    replicas: 1
+    nodeName: ip-10-0-0-2.ec2.internal
+    command:
+      - bin/consume
+  pinned-cron:
+    type: cronjob
+    schedule: "0 * * * *"
+    nodeName: ip-10-0-0-3.ec2.internal
+    command:
+      - bin/cron-task
+  pinned-pre-job:
+    type: pre-job
+    nodeName: ip-10-0-0-4.ec2.internal
+    command:
+      - bin/migrate

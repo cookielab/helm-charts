@@ -1,0 +1,88 @@
+suite: hostNetwork and dnsPolicy
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: omits hostNetwork and dnsPolicy by default
+    templates:
+      - templates/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.hostNetwork
+      - notExists:
+          path: spec.template.spec.dnsPolicy
+
+  - it: sets hostNetwork on Deployment pod spec
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.api.hostNetwork: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+
+  - it: sets dnsPolicy on Deployment pod spec
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.api.dnsPolicy: ClusterFirstWithHostNet
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+
+  - it: combines hostNetwork + dnsPolicy on consumer Deployment
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+      components.worker.hostNetwork: true
+      components.worker.dnsPolicy: ClusterFirstWithHostNet
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+        documentIndex: 1
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+        documentIndex: 1
+
+  - it: propagates hostNetwork and dnsPolicy to CronJob pod spec
+    templates:
+      - templates/cronJob.yaml
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "*/5 * * * *"
+      components.cron.command:
+        - bin/cron-task
+      components.cron.hostNetwork: true
+      components.cron.dnsPolicy: ClusterFirstWithHostNet
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+
+  - it: propagates hostNetwork and dnsPolicy to pre-job pod spec
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.hostNetwork: true
+      components.migrate.dnsPolicy: ClusterFirstWithHostNet
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet

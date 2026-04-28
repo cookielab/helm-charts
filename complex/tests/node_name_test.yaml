@@ -1,0 +1,63 @@
+suite: nodeName propagation across workload kinds
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: omits nodeName from Deployment pod spec when unset
+    templates:
+      - templates/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.nodeName
+
+  - it: propagates nodeName to Deployment pod spec
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.api.nodeName: ip-10-0-0-1.ec2.internal
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeName
+          value: ip-10-0-0-1.ec2.internal
+
+  - it: propagates nodeName to consumer Deployment pod spec
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+      components.worker.nodeName: ip-10-0-0-2.ec2.internal
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeName
+          value: ip-10-0-0-2.ec2.internal
+        documentIndex: 1
+
+  - it: propagates nodeName to CronJob pod spec
+    templates:
+      - templates/cronJob.yaml
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "0 * * * *"
+      components.cron.command:
+        - bin/cron-task
+      components.cron.nodeName: ip-10-0-0-3.ec2.internal
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.nodeName
+          value: ip-10-0-0-3.ec2.internal
+
+  - it: propagates nodeName to pre-job pod spec
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.nodeName: ip-10-0-0-4.ec2.internal
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeName
+          value: ip-10-0-0-4.ec2.internal
