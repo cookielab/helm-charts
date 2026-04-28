@@ -64,6 +64,18 @@ tests:
           path: spec.podIdentity.provider
           value: aws
 
+  - it: respects triggerAuthEnabled false override
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          identityOwner: pod
+          triggerAuthEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: renders one TriggerAuthentication per SQS trigger with pod identity
     set:
       components.consumer-foo.envs.values.SQS_QUEUE_A: https://sqs.eu-west-1.amazonaws.com/123/a

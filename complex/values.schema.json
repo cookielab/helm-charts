@@ -35,6 +35,11 @@
         },
         "awsRegion": {
           "type": "string"
+        },
+        "triggerAuthEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "When identityOwner is 'pod', controls whether the chart auto-generates a TriggerAuthentication resource. Set to false to manage it externally. Has no effect when identityOwner is 'operator'."
         }
       },
       "additionalProperties": false

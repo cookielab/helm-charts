@@ -2,7 +2,7 @@
   {{- if and (eq $component.type "consumer") (hasKey $component "keda") }}
     {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
     {{- range $i, $trigger := $component.keda.triggers }}
-      {{- if and (eq $trigger.type "aws-sqs-queue") (ne (default "operator" $trigger.identityOwner) "operator") (default true $trigger.triggerAuthEnabled) }}
+      {{- if and (eq $trigger.type "aws-sqs-queue") (ne (default "operator" $trigger.identityOwner) "operator") (ne $trigger.triggerAuthEnabled false) }}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
