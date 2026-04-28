@@ -1,0 +1,161 @@
+suite: Service rendering
+templates:
+  - templates/service.yaml
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: renders a Service for a http component
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: test-api
+
+  - it: renders a Service for a http-internal component
+    set:
+      components.api.type: http-internal
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+
+  - it: does not render a Service for a consumer component
+    set:
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-api
+
+  - it: does not render a Service for a cronjob component
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "*/5 * * * *"
+      components.cron.command:
+        - bin/cron-task
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-api
+
+  - it: does not render a Service for a pre-job component
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-api
+
+  - it: defaults service type to ClusterIP
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+  - it: allows component-level override of service type to LoadBalancer
+    set:
+      components.api.service.type: LoadBalancer
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+
+  - it: inherits service type from global.service.type
+    set:
+      global.service.type: LoadBalancer
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+
+  - it: component service type wins over global service type
+    set:
+      global.service.type: LoadBalancer
+      components.api.service.type: ClusterIP
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+  - it: renders a single port with TCP protocol and matching targetPort
+    asserts:
+      - lengthEqual:
+          path: spec.ports
+          count: 1
+      - equal:
+          path: spec.ports[0].port
+          value: 3000
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 3000
+      - equal:
+          path: spec.ports[0].protocol
+          value: TCP
+
+  - it: renders multiple ports
+    set:
+      components.api.ports:
+        - name: http
+          port: 8080
+        - name: metrics
+          port: 9090
+    asserts:
+      - lengthEqual:
+          path: spec.ports
+          count: 2
+      - equal:
+          path: spec.ports[0].name
+          value: http
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+      - equal:
+          path: spec.ports[1].name
+          value: metrics
+      - equal:
+          path: spec.ports[1].port
+          value: 9090
+
+  - it: emits selector with component label so Service binds matching Pods
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: api
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: test
+
+  - it: renders one Service per http/http-internal component
+    set:
+      components.web.type: http-internal
+      components.web.replicas: 1
+      components.web.ports:
+        - port: 4000
+      components.web.probes:
+        readinessProbe:
+          httpGet:
+            port: 4000
+            path: /
+        livenessProbe:
+          httpGet:
+            port: 4000
+            path: /
+    asserts:
+      - hasDocuments:
+          count: 2

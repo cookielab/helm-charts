@@ -50,7 +50,7 @@ volumeMounts:
 {{- range . }}
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
-    readOnly: {{ .readOnly | default true }}
+    readOnly: {{ ne .readOnly false }}
     {{- if .subPath }}
     subPath: {{ .subPath }}
     {{- end }}
@@ -60,7 +60,7 @@ volumeMounts:
 {{- range . }}
   - name: {{ .name }}
     mountPath: {{ .mountPath }}
-    readOnly: {{ .readOnly | default true }}
+    readOnly: {{ ne .readOnly false }}
     {{- if .subPath }}
     subPath: {{ .subPath }}
     {{- end }}
