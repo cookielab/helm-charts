@@ -676,6 +676,15 @@
         "OnFailure"
       ]
     },
+    "strategyType": {
+      "description": "Deployment strategy type. 'RollingUpdate' gradually replaces pods, 'Recreate' kills all existing pods before creating new ones.",
+      "type": "string",
+      "enum": [
+        "RollingUpdate",
+        "Recreate"
+      ],
+      "default": "RollingUpdate"
+    },
     "rollingUpdate": {
       "description": "Spec to control the desired behavior of rolling update.",
       "properties": {
@@ -2699,13 +2708,7 @@
           "$ref": "#/definitions/rollingUpdate"
         },
         "strategyType": {
-          "description": "Deployment strategy type. 'RollingUpdate' gradually replaces pods, 'Recreate' kills all existing pods before creating new ones.",
-          "type": "string",
-          "enum": [
-            "RollingUpdate",
-            "Recreate"
-          ],
-          "default": "RollingUpdate"
+          "$ref": "#/definitions/strategyType"
         },
         "nodeSelector": {
           "$ref": "#/definitions/nodeSelector"
@@ -3115,13 +3118,7 @@
             "$ref": "#/definitions/rollingUpdate"
           },
           "strategyType": {
-            "description": "Deployment strategy type. 'RollingUpdate' gradually replaces pods, 'Recreate' kills all existing pods before creating new ones.",
-            "type": "string",
-            "enum": [
-              "RollingUpdate",
-              "Recreate"
-            ],
-            "default": "RollingUpdate"
+            "$ref": "#/definitions/strategyType"
           },
           "envs": {
             "type": "object",
