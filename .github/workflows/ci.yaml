@@ -157,7 +157,7 @@ jobs:
           path: complex/charts
 
       - name: Install helm-unittest plugin
-        run: helm plugin install https://github.com/helm-unittest/helm-unittest --version 0.6.2
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest --version 1.0.3
 
       - name: Run unit tests
         run: helm unittest complex
