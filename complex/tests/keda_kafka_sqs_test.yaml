@@ -231,4 +231,4 @@ tests:
         - type: not-a-real-trigger
     asserts:
       - failedTemplate:
-          errorPattern: "Must validate at least one schema"
+          errorPattern: "(Must validate at least one schema|'anyOf' failed)"

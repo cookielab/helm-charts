@@ -125,7 +125,7 @@ tests:
           threshold: 100
     asserts:
       - failedTemplate:
-          errorPattern: "serverAddress is required"
+          errorPattern: "(serverAddress is required|missing property 'serverAddress')"
 
   - it: schema rejects prometheus trigger missing metricName and query
     set:
@@ -135,7 +135,7 @@ tests:
           threshold: 100
     asserts:
       - failedTemplate:
-          errorPattern: "metricName is required"
+          errorPattern: "(metricName is required|missing property 'metricName')"
 
   - it: schema rejects prometheus trigger missing threshold
     set:
@@ -145,4 +145,4 @@ tests:
           metricName: rps
     asserts:
       - failedTemplate:
-          errorPattern: "threshold is required"
+          errorPattern: "(threshold is required|missing property 'threshold')"
