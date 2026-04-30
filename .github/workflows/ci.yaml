@@ -129,7 +129,7 @@ jobs:
           helm template test ./complex --debug -f complex/testing-values/values-recreate.yaml
           helm template test ./complex --debug -f complex/testing-values/values-host-network.yaml
           helm template test ./complex --debug -f complex/testing-values/values-node-name.yaml
-          
+
           # Test infrastructure configurations
           helm template test ./complex --debug -f complex/testing-values/values-ingress.yaml
           helm template test ./complex --debug -f complex/testing-values/values-values-from.yaml
