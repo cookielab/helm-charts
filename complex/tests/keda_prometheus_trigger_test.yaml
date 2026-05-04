@@ -1,0 +1,148 @@
+suite: KEDA Prometheus scaler trigger
+release:
+  name: test
+templates:
+  - templates/keda-scaledobject.yaml
+set:
+  global.container.image.repository: cookielab/deployer
+  global.container.image.tag: 1.0.0-rc2
+  components.consumer-foo.type: consumer
+  components.consumer-foo.command:
+    - bin/consume
+  components.consumer-foo.keda.minReplicaCount: 1
+  components.consumer-foo.keda.maxReplicaCount: 10
+tests:
+  - it: renders prometheus trigger with metricName and required fields
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          metricName: http_requests_total
+          threshold: 100
+    asserts:
+      - isKind:
+          of: ScaledObject
+      - equal:
+          path: spec.triggers[0].type
+          value: prometheus
+      - equal:
+          path: spec.triggers[0].metadata.serverAddress
+          value: http://prometheus:9090
+      - equal:
+          path: spec.triggers[0].metadata.metricName
+          value: http_requests_total
+      - equal:
+          path: spec.triggers[0].metadata.threshold
+          value: 100
+      - notExists:
+          path: spec.triggers[0].metadata.query
+
+  - it: renders prometheus trigger with query instead of metricName
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          query: 'sum(rate(http_requests_total[5m]))'
+          threshold: 200
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.query
+          value: sum(rate(http_requests_total[5m]))
+      - notExists:
+          path: spec.triggers[0].metadata.metricName
+
+  - it: preserves float thresholds without quoting them
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          metricName: rps
+          threshold: 100.5
+          activationThreshold: 50.25
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.threshold
+          value: 100.5
+      - equal:
+          path: spec.triggers[0].metadata.activationThreshold
+          value: 50.25
+
+  - it: emits all optional fields when provided
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: https://prometheus.example.com:9090
+          metricName: rps
+          threshold: 100
+          ignoreNullValues: true
+          unsafeSsl: true
+          customHeaders: "X-Header:value"
+          namespace: monitoring
+          queryParameters: "timeout=30s"
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.ignoreNullValues
+          value: "true"
+      - equal:
+          path: spec.triggers[0].metadata.unsafeSsl
+          value: "true"
+      - equal:
+          path: spec.triggers[0].metadata.customHeaders
+          value: "X-Header:value"
+      - equal:
+          path: spec.triggers[0].metadata.namespace
+          value: monitoring
+      - equal:
+          path: spec.triggers[0].metadata.queryParameters
+          value: timeout=30s
+
+  - it: omits optional fields when they are not set
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          metricName: rps
+          threshold: 100
+    asserts:
+      - notExists:
+          path: spec.triggers[0].metadata.activationThreshold
+      - notExists:
+          path: spec.triggers[0].metadata.ignoreNullValues
+      - notExists:
+          path: spec.triggers[0].metadata.unsafeSsl
+      - notExists:
+          path: spec.triggers[0].metadata.customHeaders
+      - notExists:
+          path: spec.triggers[0].metadata.namespace
+      - notExists:
+          path: spec.triggers[0].metadata.queryParameters
+
+  - it: schema rejects prometheus trigger missing serverAddress
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          metricName: rps
+          threshold: 100
+    asserts:
+      - failedTemplate:
+          errorPattern: "(serverAddress is required|missing property 'serverAddress')"
+
+  - it: schema rejects prometheus trigger missing metricName and query
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          threshold: 100
+    asserts:
+      - failedTemplate:
+          errorPattern: "(metricName is required|missing property 'metricName')"
+
+  - it: schema rejects prometheus trigger missing threshold
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: prometheus
+          serverAddress: http://prometheus:9090
+          metricName: rps
+    asserts:
+      - failedTemplate:
+          errorPattern: "(threshold is required|missing property 'threshold')"

@@ -1,0 +1,149 @@
+suite: ConfigMap rendering and tpl substitution
+release:
+  name: test
+  namespace: default
+templates:
+  - templates/configmap.yaml
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: does not render any ConfigMap when configMaps is unset
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders one ConfigMap per configMaps entry
+    set:
+      configMaps:
+        app-config:
+          data:
+            LOG_LEVEL: info
+        shared-config:
+          data:
+            FEATURE_X: "true"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: ConfigMap
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: app-config
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: shared-config
+        documentIndex: 1
+
+  - it: emits standard kubernetes labels with component=config
+    set:
+      configMaps:
+        app-config:
+          data:
+            LOG_LEVEL: info
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: config
+      - equal:
+          path: metadata.namespace
+          value: default
+
+  - it: merges custom labels with defaults
+    set:
+      configMaps:
+        app-config:
+          labels:
+            config-type: application
+            environment: testing
+          data:
+            X: "1"
+    asserts:
+      - equal:
+          path: metadata.labels["config-type"]
+          value: application
+      - equal:
+          path: metadata.labels["environment"]
+          value: testing
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: config
+
+  - it: emits annotations only when provided
+    set:
+      configMaps:
+        app-config:
+          annotations:
+            config.kubernetes.io/source: helm
+          data:
+            X: "1"
+    asserts:
+      - equal:
+          path: metadata.annotations["config.kubernetes.io/source"]
+          value: helm
+
+  - it: omits annotations when none are provided
+    set:
+      configMaps:
+        app-config:
+          data:
+            X: "1"
+    asserts:
+      - notExists:
+          path: metadata.annotations
+
+  - it: marks ConfigMap immutable when requested
+    set:
+      configMaps:
+        app-config:
+          immutable: true
+          data:
+            X: "1"
+    asserts:
+      - equal:
+          path: immutable
+          value: true
+
+  - it: omits immutable field when not set
+    set:
+      configMaps:
+        app-config:
+          data:
+            X: "1"
+    asserts:
+      - notExists:
+          path: immutable
+
+  - it: substitutes Release.Name through tpl in data values
+    set:
+      configMaps:
+        app-config:
+          data:
+            APP_NAME: "{{ .Release.Name }}"
+    asserts:
+      - equal:
+          path: data.APP_NAME
+          value: test
+
+  - it: renders multiple data keys
+    set:
+      configMaps:
+        app-config:
+          data:
+            DATABASE_URL: postgresql://localhost:5432/myapp
+            REDIS_URL: redis://localhost:6379
+            LOG_LEVEL: info
+    asserts:
+      - equal:
+          path: data.DATABASE_URL
+          value: postgresql://localhost:5432/myapp
+      - equal:
+          path: data.REDIS_URL
+          value: redis://localhost:6379
+      - equal:
+          path: data.LOG_LEVEL
+          value: info

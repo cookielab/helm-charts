@@ -1,0 +1,118 @@
+suite: VerticalPodAutoscaler rendering
+release:
+  name: test
+templates:
+  - templates/vpa.yaml
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: does not render a VPA when vpa is unset
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not render a VPA when vpa.enabled is false
+    set:
+      components.api.vpa.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders a VPA targeting the component Deployment with defaults
+    set:
+      components.api.vpa.enabled: true
+    asserts:
+      - isKind:
+          of: VerticalPodAutoscaler
+      - equal:
+          path: apiVersion
+          value: autoscaling.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: test-api
+      - equal:
+          path: spec.targetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.targetRef.name
+          value: test-api
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: Auto
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.cpu
+          value: 50m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.memory
+          value: 128Mi
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 500m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 1Gi
+
+  - it: honours custom updateMode
+    set:
+      components.api.vpa.enabled: true
+      components.api.vpa.updateMode: "Off"
+    asserts:
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: "Off"
+
+  - it: honours custom min/max CPU and memory
+    set:
+      components.api.vpa.enabled: true
+      components.api.vpa.minCpu: 100m
+      components.api.vpa.maxCpu: "2"
+      components.api.vpa.minMemory: 256Mi
+      components.api.vpa.maxMemory: 4Gi
+    asserts:
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.cpu
+          value: 100m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: "2"
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.memory
+          value: 256Mi
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 4Gi
+
+  - it: applies to all containers via wildcard containerName
+    set:
+      components.api.vpa.enabled: true
+    asserts:
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: "*"
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].controlledResources[0]
+          value: cpu
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].controlledResources[1]
+          value: memory
+
+  - it: does not render VPA for cronjob components
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "0 * * * *"
+      components.cron.command:
+        - bin/task
+      components.cron.vpa.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not render VPA for pre-job components
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.vpa.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0

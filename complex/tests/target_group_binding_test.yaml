@@ -1,0 +1,144 @@
+suite: TargetGroupBinding (AWS Load Balancer Controller integration)
+release:
+  name: test
+templates:
+  - templates/targetGroupBinding.yaml
+tests:
+  - it: renders a single TargetGroupBinding from values-minimal targetGroup
+    values:
+      - ../testing-values/values-minimal.yaml
+    asserts:
+      - isKind:
+          of: TargetGroupBinding
+      - equal:
+          path: apiVersion
+          value: elbv2.k8s.aws/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-api
+      - equal:
+          path: spec.targetType
+          value: ip
+      - equal:
+          path: spec.targetGroupARN
+          value: arn:fake
+      - equal:
+          path: spec.serviceRef.name
+          value: test-api
+      - equal:
+          path: spec.serviceRef.port
+          value: 3000
+
+  - it: renders networking ingress block when securityGroupIds are set
+    values:
+      - ../testing-values/values-minimal.yaml
+    asserts:
+      - equal:
+          path: spec.networking.ingress[0].from[0].securityGroup.groupID
+          value: sg-fake
+
+  - it: renders one TargetGroupBinding per targetGroups entry with distinguisher suffix
+    set:
+      global.container.image.repository: cookielab/deployer
+      global.container.image.tag: 1.0.0-rc2
+      components.api.type: http
+      components.api.replicas: 1
+      components.api.ports[0].port: 3000
+      components.api.probes.readinessProbe.httpGet.port: 8080
+      components.api.probes.readinessProbe.httpGet.path: /h
+      components.api.probes.livenessProbe.httpGet.port: 8080
+      components.api.probes.livenessProbe.httpGet.path: /h
+      components.api.targetGroups:
+        - distinguisher: private
+          arn: arn:private
+          securityGroupIds:
+            - sg-private
+        - distinguisher: public
+          arn: arn:public
+          securityGroupIds:
+            - sg-public
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: test-api-private
+        documentIndex: 0
+      - equal:
+          path: spec.targetGroupARN
+          value: arn:private
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-api-public
+        documentIndex: 1
+      - equal:
+          path: spec.targetGroupARN
+          value: arn:public
+        documentIndex: 1
+
+  - it: omits suffix when targetGroup name is exactly "default"
+    set:
+      global.container.image.repository: cookielab/deployer
+      global.container.image.tag: 1.0.0-rc2
+      components.api.type: http
+      components.api.replicas: 1
+      components.api.ports[0].port: 3000
+      components.api.probes.readinessProbe.httpGet.port: 8080
+      components.api.probes.readinessProbe.httpGet.path: /h
+      components.api.probes.livenessProbe.httpGet.port: 8080
+      components.api.probes.livenessProbe.httpGet.path: /h
+      components.api.targetGroup.name: default
+      components.api.targetGroup.arn: arn:default
+      components.api.targetGroup.securityGroupIds:
+        - sg-fake
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-api
+
+  - it: appends -<name> suffix when targetGroup has a non-default name
+    set:
+      global.container.image.repository: cookielab/deployer
+      global.container.image.tag: 1.0.0-rc2
+      components.api.type: http
+      components.api.replicas: 1
+      components.api.ports[0].port: 3000
+      components.api.probes.readinessProbe.httpGet.port: 8080
+      components.api.probes.readinessProbe.httpGet.path: /h
+      components.api.probes.livenessProbe.httpGet.port: 8080
+      components.api.probes.livenessProbe.httpGet.path: /h
+      components.api.targetGroup.name: blue
+      components.api.targetGroup.arn: arn:blue
+      components.api.targetGroup.securityGroupIds:
+        - sg-fake
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-api-blue
+
+  - it: does not render binding when component has ingress configured
+    values:
+      - ../testing-values/values-minimal.yaml
+    set:
+      components.api.ingress.className: alb
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not render binding for consumer components
+    set:
+      global.container.image.repository: cookielab/deployer
+      global.container.image.tag: 1.0.0-rc2
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+    asserts:
+      - hasDocuments:
+          count: 0

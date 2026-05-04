@@ -1,0 +1,55 @@
+suite: deployment strategy
+templates:
+  - templates/deployment.yaml
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: defaults to RollingUpdate when strategyType is unset
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - exists:
+          path: spec.strategy.rollingUpdate
+      - exists:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+      - exists:
+          path: spec.strategy.rollingUpdate.maxSurge
+
+  - it: explicit RollingUpdate behaves the same as default
+    set:
+      components.api.strategyType: RollingUpdate
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - exists:
+          path: spec.strategy.rollingUpdate
+
+  - it: switches to Recreate strategy when requested
+    set:
+      components.api.strategyType: Recreate
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - notExists:
+          path: spec.strategy.rollingUpdate
+
+  - it: Recreate strategy is independent per component
+    set:
+      components.api.strategyType: Recreate
+      components.worker.type: consumer
+      components.worker.command:
+        - bin/consume
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+        documentIndex: 0
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+        documentIndex: 1

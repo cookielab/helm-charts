@@ -1,0 +1,115 @@
+suite: KEDA TriggerAuthentication for SQS pod identity
+release:
+  name: test
+templates:
+  - templates/keda-triggerauthentication.yaml
+set:
+  global.container.image.repository: cookielab/deployer
+  global.container.image.tag: 1.0.0-rc2
+  global.keda.awsRegion: eu-west-1
+  components.consumer-foo.type: consumer
+  components.consumer-foo.command:
+    - bin/consume
+  components.consumer-foo.envs.values.SQS_QUEUE: https://sqs.eu-west-1.amazonaws.com/123/test
+  components.consumer-foo.keda.minReplicaCount: 1
+  components.consumer-foo.keda.maxReplicaCount: 5
+tests:
+  - it: does not render TriggerAuthentication for consumers without keda
+    set:
+      components.plain-consumer.type: consumer
+      components.plain-consumer.command:
+        - bin/work
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not render TriggerAuthentication for operator identityOwner (default)
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not render TriggerAuthentication when explicit operator identityOwner
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          identityOwner: operator
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders TriggerAuthentication for SQS trigger with pod identityOwner
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          identityOwner: pod
+    asserts:
+      - isKind:
+          of: TriggerAuthentication
+      - equal:
+          path: apiVersion
+          value: keda.sh/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-consumer-foo-auth-0
+      - equal:
+          path: spec.podIdentity.provider
+          value: aws
+
+  - it: respects triggerAuthEnabled false override
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE
+          queueLength: 5
+          identityOwner: pod
+          triggerAuthEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders one TriggerAuthentication per SQS trigger with pod identity
+    set:
+      components.consumer-foo.envs.values.SQS_QUEUE_A: https://sqs.eu-west-1.amazonaws.com/123/a
+      components.consumer-foo.envs.values.SQS_QUEUE_B: https://sqs.eu-west-1.amazonaws.com/123/b
+      components.consumer-foo.keda.triggers:
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE_A
+          queueLength: 5
+          identityOwner: pod
+        - type: aws-sqs-queue
+          queueURLFromEnv: SQS_QUEUE_B
+          queueLength: 5
+          identityOwner: pod
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: test-consumer-foo-auth-0
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-consumer-foo-auth-1
+        documentIndex: 1
+
+  - it: skips trigger types other than aws-sqs-queue
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: t
+          consumerGroup: g
+          lagThreshold: 5
+          identityOwner: pod
+    asserts:
+      - hasDocuments:
+          count: 0

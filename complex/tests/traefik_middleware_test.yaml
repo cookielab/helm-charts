@@ -1,0 +1,175 @@
+suite: Traefik Middleware resources and ingress reference resolution
+release:
+  name: test
+  namespace: default
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: does not render any Middleware resources by default
+    templates:
+      - templates/traefikMiddleware.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders global Middleware with release-prefixed name
+    templates:
+      - templates/traefikMiddleware.yaml
+    set:
+      global.traefikMiddlewares:
+        - name: security-headers
+          spec:
+            headers:
+              customResponseHeaders:
+                X-Frame-Options: DENY
+    asserts:
+      - isKind:
+          of: Middleware
+      - equal:
+          path: apiVersion
+          value: traefik.io/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-security-headers
+      - equal:
+          path: spec.headers.customResponseHeaders["X-Frame-Options"]
+          value: DENY
+
+  - it: renders component Middleware with component-prefixed name
+    templates:
+      - templates/traefikMiddleware.yaml
+    set:
+      components.api.traefikMiddlewares:
+        - name: strip-prefix
+          spec:
+            stripPrefix:
+              prefixes:
+                - /v1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-api-strip-prefix
+      - equal:
+          path: spec.stripPrefix.prefixes[0]
+          value: /v1
+
+  - it: ingress translates component middleware ref to namespaced kubernetescrd address
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.api.ingress.className: traefik
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - strip-prefix
+      components.api.traefikMiddlewares:
+        - name: strip-prefix
+          spec:
+            stripPrefix:
+              prefixes:
+                - /v1
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: default-test-api-strip-prefix@kubernetescrd
+
+  - it: "ingress translates global: ref to release-prefixed kubernetescrd address"
+    templates:
+      - templates/ingress.yaml
+    set:
+      global.traefikMiddlewares:
+        - name: security-headers
+          spec:
+            headers:
+              customResponseHeaders:
+                X-Frame-Options: DENY
+      components.api.ingress.className: traefik
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - global:security-headers
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: default-test-security-headers@kubernetescrd
+
+  - it: ingress passes external @-references through unchanged
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.api.ingress.className: traefik
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - auth@file
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: auth@file
+
+  - it: ingress joins multiple middleware refs with comma
+    templates:
+      - templates/ingress.yaml
+    set:
+      global.traefikMiddlewares:
+        - name: security-headers
+          spec:
+            headers:
+              customResponseHeaders:
+                X-Frame-Options: DENY
+      components.api.ingress.className: traefik
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - global:security-headers
+        - rate-limit
+        - auth@file
+      components.api.traefikMiddlewares:
+        - name: rate-limit
+          spec:
+            rateLimit:
+              average: 100
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: default-test-security-headers@kubernetescrd,default-test-api-rate-limit@kubernetescrd,auth@file
+
+  - it: rejects manual middlewares annotation when traefikMiddlewareRefs is also used
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.api.ingress.className: traefik
+      components.api.ingress.annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: manual-value
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - rate-limit
+      components.api.traefikMiddlewares:
+        - name: rate-limit
+          spec:
+            rateLimit:
+              average: 100
+    asserts:
+      - failedTemplate:
+          errorMessage: "Component 'api' cannot use both 'traefikMiddlewareRefs' and manual 'traefik.ingress.kubernetes.io/router.middlewares' annotation. Use only one."

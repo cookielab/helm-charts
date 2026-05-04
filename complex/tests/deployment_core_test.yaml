@@ -1,0 +1,335 @@
+suite: Deployment core rendering
+templates:
+  - templates/deployment.yaml
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: propagates replicas from the component
+    set:
+      components.api.replicas: 5
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 5
+
+  - it: defaults progressDeadlineSeconds to 300
+    asserts:
+      - equal:
+          path: spec.progressDeadlineSeconds
+          value: 300
+
+  - it: honours an explicit progressDeadlineSeconds
+    set:
+      components.api.progressDeadlineSeconds: 600
+    asserts:
+      - equal:
+          path: spec.progressDeadlineSeconds
+          value: 600
+
+  - it: renders container image from global container settings
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: application
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: cookielab/deployer:1.0.0-rc2
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+
+  - it: allows component-level image override
+    set:
+      components.api.image:
+        repository: my/app
+        tag: v2.3.4
+        pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: my/app:v2.3.4
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: renders command and args when set on the component
+    set:
+      components.api.command:
+        - /bin/sh
+        - -c
+      components.api.args:
+        - exec /app/server
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/sh
+            - -c
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - exec /app/server
+
+  - it: omits command and args when not set
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].command
+      - notExists:
+          path: spec.template.spec.containers[0].args
+
+  - it: renders ports as containerPort entries
+    set:
+      components.api.ports:
+        - name: http
+          port: 8080
+        - port: 9090
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: http
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 9090
+
+  - it: renders literal env values from envs.values
+    set:
+      components.api.envs.values:
+        FOO: bar
+        DEBUG: "true"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FOO
+            value: "bar"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEBUG
+            value: "true"
+
+  - it: renders env valueFrom for fieldRef short-form string
+    set:
+      components.api.envs.valuesFrom:
+        POD_NAME: metadata.name
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: "metadata.name"
+
+  - it: renders env valueFrom for secretKeyRef
+    set:
+      components.api.envs.valuesFrom:
+        DB_PASSWORD:
+          secretKeyRef:
+            name: db-secret
+            key: password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "db-secret"
+                key: "password"
+
+  - it: renders envFrom for secretRef and configMapRef
+    set:
+      components.api.envs.from:
+        secrets:
+          - app-secret
+        configMaps:
+          - app-config
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: app-secret
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: app-config
+
+  - it: inherits resources from global container settings
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 200m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 256M
+
+  - it: allows component-level resources override
+    set:
+      components.api.resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+          ephemeralStorage: 2Gi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+          ephemeralStorage: 1Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 512Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 250m
+
+  - it: renders liveness, readiness and startup probes
+    set:
+      components.api.probes:
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /alive
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /ready
+        startupProbe:
+          httpGet:
+            port: 8080
+            path: /startup
+          failureThreshold: 30
+          periodSeconds: 10
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /alive
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /ready
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /startup
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.failureThreshold
+          value: 30
+
+  - it: defaults restartPolicy to Always and terminationGracePeriodSeconds to 120
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Always
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 120
+
+  - it: defaults enableServiceLinks to False
+    asserts:
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: False
+
+  - it: honours enableServiceLinks True override
+    set:
+      components.api.enableServiceLinks: True
+    asserts:
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: True
+
+  - it: renders global imagePullSecrets on the pod spec
+    set:
+      global.imagePullSecrets:
+        - my-registry-auth
+        - shared-registry
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: my-registry-auth
+      - equal:
+          path: spec.template.spec.imagePullSecrets[1].name
+          value: shared-registry
+
+  - it: component-level imagePullSecrets overrides global
+    set:
+      global.imagePullSecrets:
+        - global-auth
+      components.api.imagePullSecrets:
+        - api-only-auth
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: api-only-auth
+      - lengthEqual:
+          path: spec.template.spec.imagePullSecrets
+          count: 1
+
+  - it: omits imagePullSecrets when neither global nor component sets them
+    asserts:
+      - notExists:
+          path: spec.template.spec.imagePullSecrets
+
+  - it: renders tolerations from the component
+    set:
+      components.api.tolerations:
+        - key: dedicated
+          operator: Equal
+          value: gpu
+          effect: NoSchedule
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: dedicated
+      - equal:
+          path: spec.template.spec.tolerations[0].operator
+          value: Equal
+      - equal:
+          path: spec.template.spec.tolerations[0].value
+          value: gpu
+      - equal:
+          path: spec.template.spec.tolerations[0].effect
+          value: NoSchedule
+
+  - it: omits tolerations when none configured
+    asserts:
+      - notExists:
+          path: spec.template.spec.tolerations
+
+  - it: merges global and component nodeSelector
+    set:
+      global.nodeSelector:
+        kubernetes.io/os: linux
+      components.api.nodeSelector:
+        node-pool: workers
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/os"]
+          value: linux
+      - equal:
+          path: spec.template.spec.nodeSelector["node-pool"]
+          value: workers
+
+  - it: selector matchLabels match the pod template labels
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: api
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: test
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: api
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: test

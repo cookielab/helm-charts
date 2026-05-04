@@ -1,0 +1,142 @@
+suite: volumeMount readOnly behaviour
+templates:
+  - templates/deployment.yaml
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: defaults configMap volume mount to readOnly true when unset
+    set:
+      components.api.volumeMounts.configMaps:
+        - name: cm
+          configMapName: cm
+          mountPath: /etc/cm
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: cm
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: honours readOnly true on a configMap volume mount
+    set:
+      components.api.volumeMounts.configMaps:
+        - name: cm
+          configMapName: cm
+          mountPath: /etc/cm
+          readOnly: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: honours readOnly false on a configMap volume mount (regression for default-true bug)
+    set:
+      components.api.volumeMounts.configMaps:
+        - name: cm
+          configMapName: cm
+          mountPath: /etc/cm
+          readOnly: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: false
+
+  - it: defaults secret volume mount to readOnly true when unset
+    set:
+      components.api.volumeMounts.secrets:
+        - name: sec
+          secretName: sec
+          mountPath: /etc/sec
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: sec
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: honours readOnly true on a secret volume mount
+    set:
+      components.api.volumeMounts.secrets:
+        - name: sec
+          secretName: sec
+          mountPath: /etc/sec
+          readOnly: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: honours readOnly false on a secret volume mount (regression for default-true bug)
+    set:
+      components.api.volumeMounts.secrets:
+        - name: sec
+          secretName: sec
+          mountPath: /etc/sec
+          readOnly: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: false
+
+  - it: emptyDir volume mount preserves readOnly false
+    set:
+      components.api.volumeMounts.emptyDirs:
+        - name: scratch
+          mountPath: /scratch
+          sizeLimit: 100Mi
+          readOnly: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: scratch
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: false
+
+  - it: emptyDir volume mount preserves readOnly true
+    set:
+      components.api.volumeMounts.emptyDirs:
+        - name: scratch
+          mountPath: /scratch
+          sizeLimit: 100Mi
+          readOnly: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: others volume mount preserves readOnly false
+    set:
+      components.api.persistentVolumeClaim:
+        size: 1Gi
+      components.api.volumeMounts.others:
+        - name: data
+          mountPath: /data
+          readOnly: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /data
+            readOnly: false
+
+  - it: others volume mount preserves readOnly true
+    set:
+      components.api.persistentVolumeClaim:
+        size: 1Gi
+      components.api.volumeMounts.others:
+        - name: data
+          mountPath: /data
+          readOnly: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /data
+            readOnly: true
