@@ -27,7 +27,14 @@ initContainers:
 containers:
   {{- range $containerName, $container := .containers }}
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
+    {{- if hasKey $container "lifecycle" }}
+    {{- with $container.lifecycle }}
+    lifecycle:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- else if not $.skipLifecycle }}
     {{ include "cookielab.kubernetes.container.lifecycle" . | indent 4 | trim }}
+    {{- end }}
   {{- end }}
 {{- if .tolerations }}
 tolerations:

@@ -13,10 +13,12 @@ spec:
   type: {{ dig "service" "type" $.Values.global.service.type $component }}
   ports:
     {{- range $port := $component.ports }}
-    - name: {{ $port.name }}
-      port: {{ $port.port }}
+    - port: {{ $port.port }}
       targetPort: {{ $port.port }}
       protocol: TCP
+      {{- if $port.name }}
+      name: {{ $port.name }}
+      {{- end }}
     {{- end }}
   selector:
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}

@@ -106,7 +106,7 @@ tests:
           lagThreshold: 5
     asserts:
       - failedTemplate:
-          errorMessage: "Kafka trigger for 'consumer-foo' is missing required field(s)."
+          errorMessage: "Kafka trigger for 'consumer-foo' uses identityOwner=operator (aws_msk_iam SASL) and requires 'awsRegion' (set on the trigger or global.keda.awsRegion)."
 
   - it: renders SQS trigger with operator identityOwner (default)
     set:
@@ -174,7 +174,7 @@ tests:
           queueLength: 5
     asserts:
       - failedTemplate:
-          errorMessage: "SQS trigger for 'consumer-foo' is missing required field(s)."
+          errorMessage: "SQS trigger for 'consumer-foo' is missing required field 'awsRegion' (set on the trigger or global.keda.awsRegion)."
 
   - it: renders Cron trigger with desiredReplicas
     set:

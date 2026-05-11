@@ -3157,6 +3157,10 @@
           "securityContext": {
             "$ref": "#/definitions/securityContext"
           },
+          "lifecycle": {
+            "description": "Container lifecycle hooks. When unset, a default preStop sleep is applied to long-running pods (deployments and consumers); cronjobs and pre-jobs always skip the default. Set to {} to disable, or provide a full lifecycle object to override.",
+            "type": ["object", "null"]
+          },
           "probes": {
             "$ref": "#/definitions/probes"
           },

@@ -26,10 +26,10 @@ tests:
           value: monitoring.coreos.com/v1
       - equal:
           path: metadata.name
-          value: test
+          value: test-api
       - equal:
           path: spec.groups[0].name
-          value: test
+          value: test-api
       - equal:
           path: spec.groups[0].rules[0].alert
           value: HighErrorRate
