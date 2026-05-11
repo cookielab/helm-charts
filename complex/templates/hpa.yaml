@@ -14,7 +14,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "component.name" (dict "name" $componentName "Release" $.Release) }}
-  minReplicas: {{ $component.hpa.minReplicas | default $component.replicas }}
+  minReplicas: {{ $component.hpa.minReplicas | default $component.replicas | default 1 }}
   maxReplicas: {{ $component.hpa.maxReplicas }}
   behavior:
     scaleUp:

@@ -18,7 +18,9 @@ metadata:
     {{ $.Values.global.metadata.annotations | toYaml | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not (and $component.hpa $component.hpa.enabled) }}
   replicas: {{ $component.replicas }}
+  {{- end }}
   progressDeadlineSeconds: {{ default 300 $component.progressDeadlineSeconds }}
   strategy:
     type: {{ default "RollingUpdate" $component.strategyType }}

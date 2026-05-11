@@ -27,7 +27,14 @@ initContainers:
 containers:
   {{- range $containerName, $container := .containers }}
   - {{ include "container" (dict "specific" $container "name" $containerName "global" $.global.container ) | indent 4 | trim }}
+    {{- if hasKey $container "lifecycle" }}
+    {{- with $container.lifecycle }}
+    lifecycle:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- else if not $.skipLifecycle }}
     {{ include "cookielab.kubernetes.container.lifecycle" . | indent 4 | trim }}
+    {{- end }}
   {{- end }}
 {{- if .tolerations }}
 tolerations:
@@ -41,15 +48,13 @@ tolerations:
 {{- if or .serviceAccountName $.global.serviceAccountName }}
 serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }}
 {{- end }}
-# securityContext:
-#   runAsNonRoot: true
 {{ include "cookielab.kubernetes.pod.topology-spread" (dict "kubeLabels" .kubeLabels "metadata" .metadata) }}
 {{- $mergedNodeSelector := merge (default dict .nodeSelector) (default dict .global.nodeSelector) }}
 {{- if $mergedNodeSelector }}
 nodeSelector:
 {{ toYaml $mergedNodeSelector | indent 2 }}
 {{- end }}
-enableServiceLinks: {{ default "False" .enableServiceLinks }}
+enableServiceLinks: {{ default false .enableServiceLinks }}
 {{- $globalVolumeMounts := .global.container.volumeMounts }}
 {{- $localVolumeMounts := .volumeMounts }}
 {{- $configMaps := $globalVolumeMounts.configMaps }}
