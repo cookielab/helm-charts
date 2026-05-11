@@ -48,15 +48,13 @@ tolerations:
 {{- if or .serviceAccountName $.global.serviceAccountName }}
 serviceAccountName: {{ default $.global.serviceAccountName .serviceAccountName }}
 {{- end }}
-# securityContext:
-#   runAsNonRoot: true
 {{ include "cookielab.kubernetes.pod.topology-spread" (dict "kubeLabels" .kubeLabels "metadata" .metadata) }}
 {{- $mergedNodeSelector := merge (default dict .nodeSelector) (default dict .global.nodeSelector) }}
 {{- if $mergedNodeSelector }}
 nodeSelector:
 {{ toYaml $mergedNodeSelector | indent 2 }}
 {{- end }}
-enableServiceLinks: {{ default "False" .enableServiceLinks }}
+enableServiceLinks: {{ default false .enableServiceLinks }}
 {{- $globalVolumeMounts := .global.container.volumeMounts }}
 {{- $localVolumeMounts := .volumeMounts }}
 {{- $configMaps := $globalVolumeMounts.configMaps }}
