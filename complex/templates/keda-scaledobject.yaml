@@ -2,12 +2,16 @@
 {{- if and (eq $component.type "consumer") (hasKey $component "keda") }}
 {{- $keda := $component.keda }}
 {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
+{{- $scaledObjectName := printf "%s-scaler" $name }}
+{{- if ge (len $scaledObjectName) 63 }}
+  {{- fail (printf "KEDA ScaledObject name '%s' must be shorter than 63 characters." $scaledObjectName) }}
+{{- end }}
 
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: {{ $name }}-scaler
+  name: {{ $scaledObjectName }}
 spec:
   scaleTargetRef:
     name: {{ $name }}

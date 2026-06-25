@@ -1,0 +1,24 @@
+suite: KEDA ScaledObject name validation
+release:
+  name: test
+templates:
+  - templates/keda-scaledobject.yaml
+set:
+  global.container.image.repository: cookielab/deployer
+  global.container.image.tag: 1.0.0-rc2
+tests:
+  - it: fails when ScaledObject name is too long
+    set:
+      components.this-component-name-is-too-long-for-keda-scaledobject.type: consumer
+      components.this-component-name-is-too-long-for-keda-scaledobject.command:
+        - bin/consume
+      components.this-component-name-is-too-long-for-keda-scaledobject.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - failedTemplate:
+          errorMessage: "KEDA ScaledObject name 'test-this-component-name-is-too-long-for-keda-scaledobject-scaler' must be shorter than 63 characters."
