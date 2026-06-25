@@ -21,4 +21,4 @@ tests:
           awsRegion: us-east-1
     asserts:
       - failedTemplate:
-          errorMessage: "KEDA ScaledObject name 'test-this-component-name-is-too-long-for-keda-scaledobject-scaler' must be shorter than 63 characters."
+          errorMessage: "KEDA ScaledObject name 'test-this-component-name-is-too-long-for-keda-scaledobject-scaler' must be no more than 54 characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'."

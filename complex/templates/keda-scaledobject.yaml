@@ -3,8 +3,9 @@
 {{- $keda := $component.keda }}
 {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
 {{- $scaledObjectName := printf "%s-scaler" $name }}
-{{- if ge (len $scaledObjectName) 63 }}
-  {{- fail (printf "KEDA ScaledObject name '%s' must be shorter than 63 characters." $scaledObjectName) }}
+{{- $maxScaledObjectNameLength := sub 63 (len "keda-hpa-") }}
+{{- if gt (len $scaledObjectName) $maxScaledObjectNameLength }}
+  {{- fail (printf "KEDA ScaledObject name '%s' must be no more than %d characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'." $scaledObjectName $maxScaledObjectNameLength) }}
 {{- end }}
 
 ---
