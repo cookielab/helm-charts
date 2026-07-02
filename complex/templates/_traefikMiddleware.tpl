@@ -16,13 +16,9 @@ See: https://doc.traefik.io/traefik/providers/kubernetes-crd/#primitives
 {{- else if contains "@" $ref -}}
 {{- /* Already has namespace/provider - use as-is */ -}}
 {{- $middlewareRefs = append $middlewareRefs $ref -}}
-{{- else if hasPrefix "global:" $ref -}}
-{{- /* Reference to global middleware: <namespace>-<name>@kubernetescrd */ -}}
-{{- $middlewareName := trimPrefix "global:" $ref -}}
-{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s@kubernetescrd" $namespace $middlewareName) -}}
 {{- else -}}
-{{- /* Reference to component middleware: <namespace>-<component>-<name>@kubernetescrd */ -}}
-{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s-%s@kubernetescrd" $namespace $.componentName $ref) -}}
+{{- /* Reference to component middleware: <namespace>-<name>@kubernetescrd */ -}}
+{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s@kubernetescrd" $namespace $ref) -}}
 {{- end -}}
 {{- end -}}
 {{- join "," $middlewareRefs -}}
