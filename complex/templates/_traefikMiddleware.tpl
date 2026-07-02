@@ -17,12 +17,12 @@ See: https://doc.traefik.io/traefik/providers/kubernetes-crd/#primitives
 {{- /* Already has namespace/provider - use as-is */ -}}
 {{- $middlewareRefs = append $middlewareRefs $ref -}}
 {{- else if hasPrefix "global:" $ref -}}
-{{- /* Reference to global middleware: <namespace>-<release>-<name>@kubernetescrd */ -}}
+{{- /* Reference to global middleware: <namespace>-<name>@kubernetescrd */ -}}
 {{- $middlewareName := trimPrefix "global:" $ref -}}
-{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s-%s@kubernetescrd" $namespace $.Release.Name $middlewareName) -}}
+{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s@kubernetescrd" $namespace $middlewareName) -}}
 {{- else -}}
-{{- /* Reference to component middleware: <namespace>-<release>-<component>-<name>@kubernetescrd */ -}}
-{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s-%s-%s@kubernetescrd" $namespace $.Release.Name $.componentName $ref) -}}
+{{- /* Reference to component middleware: <namespace>-<component>-<name>@kubernetescrd */ -}}
+{{- $middlewareRefs = append $middlewareRefs (printf "%s-%s-%s@kubernetescrd" $namespace $.componentName $ref) -}}
 {{- end -}}
 {{- end -}}
 {{- join "," $middlewareRefs -}}
