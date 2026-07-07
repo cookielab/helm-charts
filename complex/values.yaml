@@ -23,3 +23,5 @@ global:
     maxSurge: 100%
   service:
     type: ClusterIP
+
+externalSecrets: {}

@@ -87,13 +87,27 @@ env:
 {{- $valuesConfigMaps := concat $specificConfigMaps $globalConfigMaps -}}
 {{- if or $valuesSecrets $valuesConfigMaps -}}
 envFrom:
-  {{- range $valuesSecrets }}
+  {{- range $secret := $valuesSecrets }}
   - secretRef:
-      name: {{ . }}
+      {{- if kindIs "string" $secret }}
+      name: {{ $secret }}
+      {{- else if kindIs "map" $secret }}
+      name: {{ required "envs.from.secrets[].name is required when item is an object" $secret.name }}
+      {{- if hasKey $secret "optional" }}
+      optional: {{ $secret.optional }}
+      {{- end }}
+      {{- end }}
   {{- end -}}
-  {{- range $valuesConfigMaps }}
+  {{- range $configMap := $valuesConfigMaps }}
   - configMapRef:
-      name: {{ . }}
+      {{- if kindIs "string" $configMap }}
+      name: {{ $configMap }}
+      {{- else if kindIs "map" $configMap }}
+      name: {{ required "envs.from.configMaps[].name is required when item is an object" $configMap.name }}
+      {{- if hasKey $configMap "optional" }}
+      optional: {{ $configMap.optional }}
+      {{- end }}
+      {{- end }}
   {{- end -}}
 {{- end -}}
 {{- end -}}

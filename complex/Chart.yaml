@@ -2,7 +2,7 @@ apiVersion: v2
 name: complex
 description: For deploying applications with consumers and cronjobs
 type: application
-version: 1.8.7
+version: 1.8.8
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 
 dependencies:
@@ -10,7 +10,7 @@ dependencies:
     version: "0.1.0"
     repository: "file://../lib-gitlab"
   - name: lib-kubernetes
-    version: "0.5.0"
+    version: "0.5.1"
     repository: "file://../lib-kubernetes"
   - name: lib-prometheus
     version: "0.1.7"

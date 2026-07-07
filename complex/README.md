@@ -1,6 +1,8 @@
+
+
 # complex
 
-![Version: 1.8.5](https://img.shields.io/badge/Version-1.8.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.8.8](https://img.shields.io/badge/Version-1.8.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -10,6 +12,7 @@ The **complex** Helm chart provides a comprehensive solution for deploying conta
 
 - **ConfigMap integration**: Environment variables and file mounting from ConfigMaps
 - **Secret integration**: Environment variables and file mounting from Secrets 
+- **ExternalSecret integration**: Generate External Secrets Operator resources
 - **Volume mounts**: Mount ConfigMaps and Secrets as files with custom paths
 - **Persistent storage**: Create new PVCs or reference existing ones for shared storage (EFS)
 - **Consumer workloads**: Support for consumer-type deployments
@@ -292,6 +295,62 @@ components:
 3. **Global envFrom** (`global.container.envs.from.*`)
 4. **Global hardcoded values** (`global.container.envs.values`)
 
+### External Secrets
+
+ExternalSecret resources can be declared under `externalSecrets`. Each entry renders one `ExternalSecret` with a raw `spec`, so provider-specific fields and newer CRD fields can be passed through without chart changes. Helm templating is not applied inside `spec`, which keeps External Secrets Operator template expressions such as `{{ .password }}` intact.
+
+```yaml
+global:
+  container:
+    envs:
+      from:
+        secrets:
+          - name: app-admin-vault-envs
+            optional: true
+
+externalSecrets:
+  app-admin-vault-envs:
+    spec:
+      dataFrom:
+        - extract:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: dev/admin/envs
+            metadataPolicy: None
+      refreshInterval: 60s
+      secretStoreRef:
+        kind: SecretStore
+        name: vault-secret-store
+      target:
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        name: app-admin-vault-envs
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          metadata:
+            annotations:
+              managed: ExternalSecretsOperator
+```
+
+For review environments where the remote secret path may not exist, disable the ExternalSecret in that environment and keep the pod reference optional:
+
+```yaml
+externalSecrets:
+  app-admin-vault-envs:
+    enabled: false
+
+global:
+  container:
+    envs:
+      from:
+        secrets:
+          - name: app-admin-vault-envs
+            optional: true
+```
+
+If you need External Secrets Operator to merge into a pre-created Secret, set `spec.target.creationPolicy: Merge` and create/manage that target Secret outside the ExternalSecret.
+
 ### Volume Mounts Priority
 
 Volume mounts support **granular overrides** where components can override just `configMaps` or just `secrets`:
@@ -557,6 +616,7 @@ The following complete configuration examples are available in the `testing-valu
 
 - [`values-minimal.yaml`](testing-values/values-minimal.yaml) - Basic HTTP service
 - [`values-configmap.yaml`](testing-values/values-configmap.yaml) - ConfigMap integration
+- [`values-external-secret.yaml`](testing-values/values-external-secret.yaml) - ExternalSecret integration
 - [`values-volume-mounts.yaml`](testing-values/values-volume-mounts.yaml) - Volume mount examples
 - [`values-pvc.yaml`](testing-values/values-pvc.yaml) - PersistentVolumeClaim examples
 - [`values-pvc-efs-shared.yaml`](testing-values/values-pvc-efs-shared.yaml) - Shared storage with existing PVCs
@@ -572,13 +632,14 @@ Kubernetes: `>= 1.25.0-0 < 2.0.0-0`
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../lib-gitlab | lib-gitlab | 0.1.0 |
-| file://../lib-kubernetes | lib-kubernetes | 0.5.0 |
+| file://../lib-kubernetes | lib-kubernetes | 0.5.1 |
 | file://../lib-prometheus | lib-prometheus | 0.1.7 |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| externalSecrets | object | `{}` |  |
 | global.container.envs.from.configMaps | list | `[]` |  |
 | global.container.envs.from.secrets | list | `[]` |  |
 | global.container.envs.values | object | `{}` |  |
