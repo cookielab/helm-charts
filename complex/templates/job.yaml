@@ -1,5 +1,5 @@
 {{- range $componentName, $component := .Values.components -}}
-{{- if eq $component.type "pre-job" -}}
+{{- if or (eq $component.type "pre-job") (eq $component.type "post-delete-job") -}}
 {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" (include "component.name" (dict "name" $componentName "Release" $.Release)) $.Release.Revision) "component" $componentName) $.Values.global.metadata) -}}
 ---
 apiVersion: batch/v1
@@ -10,8 +10,13 @@ metadata:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
   annotations:
+    {{- if eq $component.type "pre-job" }}
     helm.sh/hook: {{ $component.hooks | default (list "pre-install" "pre-upgrade") | join "," }}
     helm.sh/hook-delete-policy: before-hook-creation
+    {{- else }}
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    {{- end }}
     helm.sh/hook-weight: {{ $component.weight | default "0" | quote }}
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
 spec:

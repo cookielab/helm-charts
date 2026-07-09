@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.10.0](https://img.shields.io/badge/Version-1.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.11.0](https://img.shields.io/badge/Version-1.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -97,6 +97,19 @@ See `testing-values/values-ingress-only.yaml` for complete examples including:
 - OIDC/SSO integration
 - Multi-domain routing
 - Path-based routing patterns
+
+### 7. Post-Delete Job Components (`type: post-delete-job`)
+One-time cleanup jobs that run when the release is uninstalled (e.g. deregistering external resources, dropping temporary data).
+
+**Creates**: Job (runs via the `helm.sh/hook: post-delete` hook)
+
+**Key Semantics**:
+- Runs once, triggered by `helm uninstall` — does **not** run on `helm upgrade`, and will **not** run with `helm uninstall --no-hooks`.
+- The Job is automatically deleted after a successful run (`helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded`); on failure it is left in place so it can be inspected with `kubectl logs`/`kubectl describe`, since after uninstall there is no other record of what happened.
+- If cleanup logic needs to call the Kubernetes API or a cloud provider API, set `serviceAccountName` to `global.serviceAccountName` (created with `global.serviceAccountCreate: true`) or another pre-existing ServiceAccount. `post-delete-job` components do not get their own dedicated ServiceAccount (same as `pre-job`); the global one survives uninstall (`helm.sh/resource-policy: keep`), so it is still present when the hook actually runs.
+- Use `weight` to order multiple `post-delete-job` components relative to each other (same convention as `pre-job`); it does not affect ordering relative to `pre-job` or other hook phases.
+
+See `testing-values/values-post-delete-job.yaml` for an example.
 
 ## Traefik Middlewares
 

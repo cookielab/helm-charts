@@ -121,6 +121,7 @@ jobs:
           
           # Test advanced configurations  
           helm template test ./complex --debug -f complex/testing-values/values-pre-job.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-post-delete-job.yaml
           helm template test ./complex --debug -f complex/testing-values/values-service-account.yaml
           helm template test ./complex --debug -f complex/testing-values/values-security-context.yaml
           helm template test ./complex --debug -f complex/testing-values/values-rolling-update.yaml

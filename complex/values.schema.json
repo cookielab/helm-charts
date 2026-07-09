@@ -2880,6 +2880,7 @@
             "type": "string",
             "enum": [
               "pre-job",
+              "post-delete-job",
               "http",
               "http-internal",
               "consumer",
@@ -3542,6 +3543,31 @@
             "properties": {
               "type": {
                 "const": "pre-job"
+              },
+              "replicas": {
+                "const": 1
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              }
+            }
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "post-delete-job"
               },
               "replicas": {
                 "const": 1
