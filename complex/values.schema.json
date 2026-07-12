@@ -2829,8 +2829,16 @@
           },
           "apiVersion": {
             "type": "string",
-            "description": "ExternalSecret apiVersion to render.",
-            "default": "external-secrets.io/v1"
+            "description": "Secret resource apiVersion to render. Defaults to secrets.hashicorp.com/v1beta1 for VaultStaticSecret, or external-secrets.io/v1 for ExternalSecret."
+          },
+          "kind": {
+            "type": "string",
+            "description": "Secret resource kind to render.",
+            "enum": [
+              "ExternalSecret",
+              "VaultStaticSecret"
+            ],
+            "default": "VaultStaticSecret"
           },
           "name": {
             "type": "string",
@@ -2856,7 +2864,7 @@
           },
           "spec": {
             "type": "object",
-            "description": "ExternalSecret spec rendered as-is. Helm tpl is not applied so External Secrets Operator templates are preserved.",
+            "description": "Secret resource spec rendered as-is. Helm tpl is not applied so operator templates are preserved.",
             "additionalProperties": true
           }
         },

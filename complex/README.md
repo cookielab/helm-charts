@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.9.0](https://img.shields.io/badge/Version-1.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.10.0](https://img.shields.io/badge/Version-1.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -297,7 +297,7 @@ components:
 
 ### External Secrets
 
-ExternalSecret resources can be declared under `externalSecrets`. Each entry renders one `ExternalSecret` with a raw `spec`, so provider-specific fields and newer CRD fields can be passed through without chart changes. Helm templating is not applied inside `spec`, which keeps External Secrets Operator template expressions such as `{{ .password }}` intact.
+External secret resources can be declared under `externalSecrets`. Each entry renders a HashiCorp `VaultStaticSecret` by default, or an External Secrets Operator `ExternalSecret` when `kind: ExternalSecret` is set. The raw `spec` passes provider-specific and newer CRD fields through without chart changes. Helm templating is not applied inside `spec`, which keeps operator template expressions such as `{{ .password }}` intact.
 
 ```yaml
 global:
@@ -310,6 +310,7 @@ global:
 
 externalSecrets:
   app-admin-vault-envs:
+    kind: ExternalSecret
     spec:
       dataFrom:
         - extract:
@@ -333,7 +334,25 @@ externalSecrets:
               managed: ExternalSecretsOperator
 ```
 
-For review environments where the remote secret path may not exist, disable the ExternalSecret in that environment and keep the pod reference optional:
+HashiCorp Vault Secrets Operator example:
+
+```yaml
+externalSecrets:
+  app-admin-vault-envs:
+    spec:
+      destination:
+        create: true
+        name: app-admin-vault-envs
+        overwrite: false
+      hmacSecretData: true
+      mount: kv2/appio_dev1
+      path: robe/xcc_admin
+      refreshAfter: 300s
+      type: kv-v2
+      vaultAuthRef: vault-default-auth
+```
+
+For review environments where the remote secret path may not exist, disable the external secret resource in that environment and keep the pod reference optional:
 
 ```yaml
 externalSecrets:
