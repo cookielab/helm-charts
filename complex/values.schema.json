@@ -1120,17 +1120,39 @@
         "secrets": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/envsFromRef"
           }
         },
         "configMaps": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/envsFromRef"
           }
         }
       },
       "additionalProperties": false
+    },
+    "envsFromRef": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "optional": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "container": {
       "type": "object",
@@ -2792,6 +2814,52 @@
         "required": [
           "data"
         ],
+        "additionalProperties": false
+      }
+    },
+    "externalSecrets": {
+      "type": "object",
+      "description": "ExternalSecret resources to be created",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Controls whether this ExternalSecret is rendered. Defaults to true when the entry is present."
+          },
+          "apiVersion": {
+            "type": "string",
+            "description": "ExternalSecret apiVersion to render.",
+            "default": "external-secrets.io/v1"
+          },
+          "name": {
+            "type": "string",
+            "description": "Override metadata.name. Defaults to the externalSecrets map key."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Override metadata.namespace. Defaults to the Helm release namespace."
+          },
+          "labels": {
+            "type": "object",
+            "description": "Additional labels for the ExternalSecret.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "description": "Additional annotations for the ExternalSecret.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "spec": {
+            "type": "object",
+            "description": "ExternalSecret spec rendered as-is. Helm tpl is not applied so External Secrets Operator templates are preserved.",
+            "additionalProperties": true
+          }
+        },
         "additionalProperties": false
       }
     },

@@ -162,6 +162,29 @@ tests:
             configMapRef:
               name: app-config
 
+  - it: renders optional envFrom object references
+    set:
+      components.api.envs.from:
+        secrets:
+          - name: app-secret
+            optional: true
+        configMaps:
+          - name: app-config
+            optional: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: app-secret
+              optional: true
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: app-config
+              optional: true
+
   - it: inherits resources from global container settings
     asserts:
       - equal:

@@ -4,9 +4,9 @@ dependencies:
   version: 0.1.0
 - name: lib-kubernetes
   repository: file://../lib-kubernetes
-  version: 0.5.0
+  version: 0.5.1
 - name: lib-prometheus
   repository: file://../lib-prometheus
   version: 0.1.7
-digest: sha256:a7057c5d70600cc8d8fc105f8db11f7d4c1e0db3e118a0760760e49e874c9e7d
-generated: "2025-07-18T18:32:53.762973+02:00"
+digest: sha256:4b2db0713e54983b80f8fcf11c4f3dc767d1f5bd0ab3e6f9def85494c094cff2
+generated: "2026-06-29T16:49:02.728864+02:00"
