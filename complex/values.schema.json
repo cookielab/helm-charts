@@ -2888,7 +2888,21 @@
             ]
           },
           "weight": {
+            "description": "Helm hook weight for pre-job components. Lower weights run first. Defaults to 0.",
             "type": "number"
+          },
+          "hooks": {
+            "description": "Helm hook events a pre-job component runs on. Defaults to both pre-install and pre-upgrade.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "pre-install",
+                "pre-upgrade"
+              ]
+            }
           },
           "tolerations": {
             "type": "array",
