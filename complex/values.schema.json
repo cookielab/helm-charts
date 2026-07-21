@@ -2889,7 +2889,7 @@
             ]
           },
           "weight": {
-            "description": "Helm hook weight for pre-job components. Lower weights run first. Defaults to 0.",
+            "description": "Helm hook weight for pre-job and post-delete-job components. Lower weights run first. Defaults to 0.",
             "type": "number"
           },
           "hooks": {
