@@ -2893,7 +2893,7 @@
             "type": "number"
           },
           "hooks": {
-            "description": "Helm hook events a pre-job component runs on. Defaults to both pre-install and pre-upgrade.",
+            "description": "Helm hook events this component's Job runs on. Defaults to pre-install and pre-upgrade; required (must be [\"post-delete\"]) for post-delete-job components.",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -2901,7 +2901,8 @@
               "type": "string",
               "enum": [
                 "pre-install",
-                "pre-upgrade"
+                "pre-upgrade",
+                "post-delete"
               ]
             }
           },
@@ -3586,8 +3587,16 @@
               },
               "keda": {
                 "type": "null"
+              },
+              "hooks": {
+                "const": [
+                  "post-delete"
+                ]
               }
-            }
+            },
+            "required": [
+              "hooks"
+            ]
           },
           {
             "properties": {

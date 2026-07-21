@@ -9,6 +9,8 @@ global:
 components:
   cleanup:
     type: post-delete-job
+    hooks:
+      - post-delete
     command:
       - bin/cleanup
     envs:
@@ -17,6 +19,8 @@ components:
 
   cleanup-without-command:
     type: post-delete-job
+    hooks:
+      - post-delete
     envs:
       values:
         EXTERNAL_API_URL: "https://example.com"

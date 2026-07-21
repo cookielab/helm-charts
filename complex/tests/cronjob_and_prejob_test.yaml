@@ -155,6 +155,8 @@ tests:
       - templates/job.yaml
     set:
       components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
       components.cleanup.command:
         - bin/cleanup
     asserts:
@@ -178,6 +180,8 @@ tests:
       - templates/job.yaml
     set:
       components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
       components.cleanup.command:
         - bin/cleanup
     asserts:
@@ -190,6 +194,8 @@ tests:
       - templates/job.yaml
     set:
       components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
       components.cleanup.command:
         - bin/cleanup
       components.cleanup.weight: 5
@@ -203,6 +209,8 @@ tests:
       - templates/job.yaml
     set:
       components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
       components.cleanup.command:
         - bin/cleanup
     asserts:
@@ -221,6 +229,8 @@ tests:
       components.a-migrate.command:
         - bin/migrate
       components.z-cleanup.type: post-delete-job
+      components.z-cleanup.hooks:
+        - post-delete
       components.z-cleanup.command:
         - bin/cleanup
     asserts:

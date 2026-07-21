@@ -10,12 +10,11 @@ metadata:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
   annotations:
-    {{- if eq $component.type "pre-job" }}
     helm.sh/hook: {{ $component.hooks | default (list "pre-install" "pre-upgrade") | join "," }}
-    helm.sh/hook-delete-policy: before-hook-creation
-    {{- else }}
-    helm.sh/hook: post-delete
+    {{- if eq $component.type "post-delete-job" }}
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    {{- else }}
+    helm.sh/hook-delete-policy: before-hook-creation
     {{- end }}
     helm.sh/hook-weight: {{ $component.weight | default "0" | quote }}
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
