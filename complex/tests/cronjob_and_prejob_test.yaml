@@ -149,3 +149,106 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: renders post-delete-job as Job with helm hooks
+    templates:
+      - templates/job.yaml
+    set:
+      components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
+      components.cleanup.command:
+        - bin/cleanup
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: apiVersion
+          value: batch/v1
+      - equal:
+          path: metadata.name
+          value: test-cleanup
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-delete
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+
+  - it: defaults post-delete-job hook-weight to 0 when not set
+    templates:
+      - templates/job.yaml
+    set:
+      components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
+      components.cleanup.command:
+        - bin/cleanup
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "0"
+
+  - it: honours post-delete-job hook-weight when set
+    templates:
+      - templates/job.yaml
+    set:
+      components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
+      components.cleanup.command:
+        - bin/cleanup
+      components.cleanup.weight: 5
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "5"
+
+  - it: post-delete-job has restartPolicy Never and backoffLimit 0
+    templates:
+      - templates/job.yaml
+    set:
+      components.cleanup.type: post-delete-job
+      components.cleanup.hooks:
+        - post-delete
+      components.cleanup.command:
+        - bin/cleanup
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - equal:
+          path: spec.backoffLimit
+          value: 0
+
+  - it: renders both pre-job and post-delete-job Jobs simultaneously without interference
+    templates:
+      - templates/job.yaml
+    set:
+      components.a-migrate.type: pre-job
+      components.a-migrate.command:
+        - bin/migrate
+      components.z-cleanup.type: post-delete-job
+      components.z-cleanup.hooks:
+        - post-delete
+      components.z-cleanup.command:
+        - bin/cleanup
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: test-a-migrate
+        documentIndex: 0
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-z-cleanup
+        documentIndex: 1
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-delete
+        documentIndex: 1

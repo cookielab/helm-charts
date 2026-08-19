@@ -2880,6 +2880,7 @@
             "type": "string",
             "enum": [
               "pre-job",
+              "post-delete-job",
               "http",
               "http-internal",
               "consumer",
@@ -2888,11 +2889,11 @@
             ]
           },
           "weight": {
-            "description": "Helm hook weight for pre-job components. Lower weights run first. Defaults to 0.",
+            "description": "Helm hook weight for pre-job and post-delete-job components. Lower weights run first. Defaults to 0.",
             "type": "number"
           },
           "hooks": {
-            "description": "Helm hook events a pre-job component runs on. Defaults to both pre-install and pre-upgrade.",
+            "description": "Helm hook events this component's Job runs on. Defaults to pre-install and pre-upgrade; required (must be [\"post-delete\"]) for post-delete-job components.",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -2900,7 +2901,8 @@
               "type": "string",
               "enum": [
                 "pre-install",
-                "pre-upgrade"
+                "pre-upgrade",
+                "post-delete"
               ]
             }
           },
@@ -3562,6 +3564,39 @@
                 "type": "null"
               }
             }
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "post-delete-job"
+              },
+              "replicas": {
+                "const": 1
+              },
+              "schedule": {
+                "type": "null"
+              },
+              "service": {
+                "type": "null"
+              },
+              "targetGroup": {
+                "type": "null"
+              },
+              "ports": {
+                "type": "null"
+              },
+              "keda": {
+                "type": "null"
+              },
+              "hooks": {
+                "const": [
+                  "post-delete"
+                ]
+              }
+            },
+            "required": [
+              "hooks"
+            ]
           },
           {
             "properties": {
