@@ -149,3 +149,43 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: propagates global.metadata annotations and labels to the pre-job pod template
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      global.metadata.annotations:
+        ad.datadoghq.com/application.logs: '[{"source":"python"}]'
+      global.metadata.labels:
+        team: platform
+    asserts:
+      - equal:
+          path: metadata.annotations["ad.datadoghq.com/application.logs"]
+          value: '[{"source":"python"}]'
+      - equal:
+          path: spec.template.metadata.annotations["ad.datadoghq.com/application.logs"]
+          value: '[{"source":"python"}]'
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: platform
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+
+  - it: propagates global.metadata annotations to the CronJob pod template
+    templates:
+      - templates/cronJob.yaml
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "0 * * * *"
+      components.cron.command:
+        - bin/task
+      global.metadata.annotations:
+        ad.datadoghq.com/application.logs: '[{"source":"python"}]'
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.metadata.annotations["ad.datadoghq.com/application.logs"]
+          value: '[{"source":"python"}]'

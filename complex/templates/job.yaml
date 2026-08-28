@@ -9,11 +9,17 @@ metadata:
   labels:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
     {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 4 | trim }}
+    {{- with $.Values.global.metadata.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     helm.sh/hook: {{ $component.hooks | default (list "pre-install" "pre-upgrade") | join "," }}
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: {{ $component.weight | default "0" | quote }}
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
+    {{- with $.Values.global.metadata.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: 0
   template:
@@ -21,10 +27,16 @@ spec:
       labels:
         {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 8 | trim }}
         {{ include "cookielab.kubernetes.labels.selector" $kubeLabels | indent 8 | trim }}
+        {{- with $.Values.global.metadata.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 8 | trim }}
         {{- if $.Values.global.metadata.gitlab }}
         {{ include "cookielab.gitlab.annotations" $.Values.global.metadata.gitlab | indent 8 | trim }}
+        {{- end }}
+        {{- with $.Values.global.metadata.annotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $.Values.global.metadata "kubeLabels" $kubeLabels "restartPolicy" "Never" "skipLifecycle" true "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "root" $) | indent 6 | trim }}
