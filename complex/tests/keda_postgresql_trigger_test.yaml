@@ -1,0 +1,390 @@
+suite: KEDA PostgreSQL scaler trigger
+release:
+  name: test
+templates:
+  - templates/keda-scaledobject.yaml
+set:
+  global.container.image.repository: cookielab/deployer
+  global.container.image.tag: 1.0.0-rc2
+  components.consumer-foo.type: consumer
+  components.consumer-foo.command:
+    - bin/consume
+  components.consumer-foo.keda.minReplicaCount: 0
+  components.consumer-foo.keda.maxReplicaCount: 1
+tests:
+  - it: renders a postgresql trigger with connectionFromEnv
+    set:
+      components.consumer-foo.envs.values.POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/app
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT count(*) FROM jobs WHERE done = false
+          targetQueryValue: "1"
+          activationTargetQueryValue: "0"
+    asserts:
+      - isKind:
+          of: ScaledObject
+      - equal:
+          path: spec.triggers[0].type
+          value: postgresql
+      - equal:
+          path: spec.triggers[0].metadata.connectionFromEnv
+          value: POSTGRES_CONNECTION_STRING
+      - equal:
+          path: spec.triggers[0].metadata.query
+          value: SELECT count(*) FROM jobs WHERE done = false
+      - equal:
+          path: spec.triggers[0].metadata.targetQueryValue
+          value: "1"
+      - equal:
+          path: spec.triggers[0].metadata.activationTargetQueryValue
+          value: "0"
+      - notExists:
+          path: spec.triggers[0].authenticationRef
+      - notExists:
+          path: spec.triggers[0].metadata.host
+
+  - it: renders numeric target values as quoted strings
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+          targetQueryValue: 5
+          activationTargetQueryValue: 2
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.targetQueryValue
+          value: "5"
+      - equal:
+          path: spec.triggers[0].metadata.activationTargetQueryValue
+          value: "2"
+
+  - it: defaults activationTargetQueryValue to "0"
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.activationTargetQueryValue
+          value: "0"
+
+  - it: renders authenticationRef when the connection string comes from a Secret
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromSecret:
+            name: app-db
+            key: PG_CONNECTION
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].authenticationRef.name
+          value: test-consumer-foo-auth-0
+      - notExists:
+          path: spec.triggers[0].metadata.connectionFromEnv
+
+  - it: renders discrete connection fields with passwordFromEnv
+    set:
+      components.consumer-foo.envs.values.POSTGRES_PASSWORD: placeholder
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.host
+          value: postgres.example.com
+      - equal:
+          path: spec.triggers[0].metadata.port
+          value: "5432"
+      - equal:
+          path: spec.triggers[0].metadata.userName
+          value: keda
+      - equal:
+          path: spec.triggers[0].metadata.dbName
+          value: app
+      - equal:
+          path: spec.triggers[0].metadata.sslmode
+          value: require
+      - equal:
+          path: spec.triggers[0].metadata.passwordFromEnv
+          value: POSTGRES_PASSWORD
+      - notExists:
+          path: spec.triggers[0].authenticationRef
+      - notExists:
+          path: spec.triggers[0].metadata.connectionFromEnv
+
+  - it: quotes a numeric port
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: 5432
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].metadata.port
+          value: "5432"
+
+  - it: renders authenticationRef when the password comes from a Secret
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromSecret:
+            name: app-db
+            key: PG_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].authenticationRef.name
+          value: test-consumer-foo-auth-0
+      - notExists:
+          path: spec.triggers[0].metadata.passwordFromEnv
+
+  - it: renders a postgresql trigger alongside other trigger types, in order
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: eu-west-1
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.triggers[0].type
+          value: kafka
+      - equal:
+          path: spec.triggers[1].type
+          value: postgresql
+
+  - it: fails when query is missing
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorPattern: "(missing required field 'query'|Must validate at least one schema|'anyOf' failed)"
+
+  - it: fails when targetQueryValue is missing
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+    asserts:
+      - failedTemplate:
+          errorPattern: "(missing required field 'targetQueryValue'|Must validate at least one schema|'anyOf' failed)"
+
+  - it: fails when no connection mode is set
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' must set exactly one of 'connectionFromEnv', 'connectionFromSecret' or 'host' (got: none)."
+
+  - it: fails when two connection modes are set
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          host: postgres.example.com
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' must set exactly one of 'connectionFromEnv', 'connectionFromSecret' or 'host' (got: connectionFromEnv, host)."
+
+  - it: fails when discrete fields are used without a password
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and must set exactly one of 'passwordFromEnv' or 'passwordFromSecret'."
+
+  - it: fails when discrete fields are used with both password sources
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          passwordFromSecret:
+            name: app-db
+            key: PG_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and must set exactly one of 'passwordFromEnv' or 'passwordFromSecret'."
+
+  - it: fails when discrete fields are missing port
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and is missing 'port'."
+
+  - it: fails when discrete fields are missing userName
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and is missing 'userName'."
+
+  - it: fails when discrete fields are missing dbName
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and is missing 'dbName'."
+
+  # KEDA's postgresql scaler fails a discrete-field connection with "no sslmode given",
+  # so the chart has to catch it at template time rather than at scale time.
+  - it: fails when discrete fields are missing sslmode
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses discrete connection fields and is missing 'sslmode'."
+
+  - it: fails when discrete fields are set alongside connectionFromEnv
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses 'connectionFromEnv' and must not set 'port', 'userName', 'dbName', 'sslmode': those fields only apply alongside 'host'."
+
+  - it: fails when a password source is set alongside connectionFromEnv
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          passwordFromSecret:
+            name: app-db
+            key: PG_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses 'connectionFromEnv' and must not set 'passwordFromSecret': those fields only apply alongside 'host'."
+
+  - it: fails when a password source is set alongside connectionFromSecret
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromSecret:
+            name: app-db
+            key: PG_CONNECTION
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorMessage: "PostgreSQL trigger for 'consumer-foo' uses 'connectionFromSecret' and must not set 'passwordFromEnv': those fields only apply alongside 'host'."
+
+  - it: rejects an unknown field on the trigger
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+          targetQueryValue: "1"
+          notAField: nope
+    asserts:
+      - failedTemplate:
+          errorPattern: "(Must validate at least one schema|'anyOf' failed)"
+
+  - it: rejects a connectionFromSecret without a key
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromSecret:
+            name: app-db
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - failedTemplate:
+          errorPattern: "(Must validate at least one schema|'anyOf' failed)"

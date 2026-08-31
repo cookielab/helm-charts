@@ -14,6 +14,26 @@ metadata:
 spec:
   podIdentity:
     provider: aws
+      {{- else if and (eq $trigger.type "postgresql") (or $trigger.connectionFromSecret $trigger.passwordFromSecret) }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ $name }}-auth-{{ $i }}
+  labels:
+    {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
+spec:
+  secretTargetRef:
+        {{- with $trigger.connectionFromSecret }}
+    - parameter: connection
+      name: {{ .name | quote }}
+      key: {{ .key | quote }}
+        {{- end }}
+        {{- with $trigger.passwordFromSecret }}
+    - parameter: password
+      name: {{ .name | quote }}
+      key: {{ .key | quote }}
+        {{- end }}
       {{- end }}
     {{- end }}
   {{- end }}

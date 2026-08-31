@@ -18,7 +18,7 @@ metadata:
     {{ $.Values.global.metadata.annotations | toYaml | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not (and $component.hpa $component.hpa.enabled) }}
+  {{- if not (or (and $component.hpa $component.hpa.enabled) (hasKey $component "keda")) }}
   replicas: {{ $component.replicas }}
   {{- end }}
   progressDeadlineSeconds: {{ default 300 $component.progressDeadlineSeconds }}

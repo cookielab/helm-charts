@@ -101,7 +101,7 @@ tests:
           value: test-consumer-foo-auth-1
         documentIndex: 1
 
-  - it: skips trigger types other than aws-sqs-queue
+  - it: skips trigger types with no secret- or pod-identity auth
     set:
       components.consumer-foo.keda.triggers:
         - type: kafka
@@ -110,6 +110,84 @@ tests:
           consumerGroup: g
           lagThreshold: 5
           identityOwner: pod
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders secretTargetRef for a postgresql connectionFromSecret
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromSecret:
+            name: app-db
+            key: PG_CONNECTION
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - isKind:
+          of: TriggerAuthentication
+      - equal:
+          path: metadata.name
+          value: test-consumer-foo-auth-0
+      - equal:
+          path: spec.secretTargetRef[0].parameter
+          value: connection
+      - equal:
+          path: spec.secretTargetRef[0].name
+          value: app-db
+      - equal:
+          path: spec.secretTargetRef[0].key
+          value: PG_CONNECTION
+      - notExists:
+          path: spec.podIdentity
+
+  - it: renders secretTargetRef for a postgresql passwordFromSecret
+    set:
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromSecret:
+            name: app-db
+            key: PG_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - equal:
+          path: spec.secretTargetRef[0].parameter
+          value: password
+      - equal:
+          path: spec.secretTargetRef[0].key
+          value: PG_PASSWORD
+
+  - it: renders nothing for a postgresql trigger using connectionFromEnv
+    set:
+      components.consumer-foo.envs.values.POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/app
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: SELECT 1
+          targetQueryValue: "1"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders nothing for a postgresql trigger using passwordFromEnv
+    set:
+      components.consumer-foo.envs.values.POSTGRES_PASSWORD: placeholder
+      components.consumer-foo.keda.triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: SELECT 1
+          targetQueryValue: "1"
     asserts:
       - hasDocuments:
           count: 0

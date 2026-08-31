@@ -21,4 +21,77 @@ tests:
           awsRegion: us-east-1
     asserts:
       - failedTemplate:
-          errorMessage: "KEDA ScaledObject name 'test-this-component-name-is-too-long-for-keda-scaledobject-scaler' must be no more than 54 characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'."
+          errorMessage: "KEDA ScaledObject name 'test-this-component-name-is-too-long-for-keda-scaledobject-scaler' must be no more than 54 characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'. Set 'keda.scaledObjectName' on component 'this-component-name-is-too-long-for-keda-scaledobject' to override it."
+
+  - it: scaledObjectName overrides the generated name verbatim
+    set:
+      components.consumer-foo.type: consumer
+      components.consumer-foo.command:
+        - bin/consume
+      components.consumer-foo.keda.scaledObjectName: my-own-scaler
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-own-scaler
+      - equal:
+          path: spec.scaleTargetRef.name
+          value: test-consumer-foo
+
+  - it: defaults to <release>-<component>-scaler when scaledObjectName is absent
+    set:
+      components.consumer-foo.type: consumer
+      components.consumer-foo.command:
+        - bin/consume
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-consumer-foo-scaler
+
+  - it: scaledObjectName rescues a component name that overflows the default
+    set:
+      components.this-component-name-is-too-long-for-keda-scaledobject.type: consumer
+      components.this-component-name-is-too-long-for-keda-scaledobject.command:
+        - bin/consume
+      components.this-component-name-is-too-long-for-keda-scaledobject.keda.scaledObjectName: short-scaler
+      components.this-component-name-is-too-long-for-keda-scaledobject.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: short-scaler
+
+  - it: rejects a scaledObjectName longer than 54 characters
+    set:
+      components.consumer-foo.type: consumer
+      components.consumer-foo.command:
+        - bin/consume
+      components.consumer-foo.keda.scaledObjectName: this-explicit-override-is-far-too-long-to-be-a-valid-keda-scaledobject-name
+      components.consumer-foo.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: us-east-1
+    asserts:
+      - failedTemplate:
+          errorPattern: "(maxLength|must be no more than 54 characters)"

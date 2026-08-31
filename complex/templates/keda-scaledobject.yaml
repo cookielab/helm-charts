@@ -2,10 +2,10 @@
 {{- if and (eq $component.type "consumer") (hasKey $component "keda") }}
 {{- $keda := $component.keda }}
 {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
-{{- $scaledObjectName := printf "%s-scaler" $name }}
+{{- $scaledObjectName := $keda.scaledObjectName | default (printf "%s-scaler" $name) }}
 {{- $maxScaledObjectNameLength := sub 63 (len "keda-hpa-") }}
 {{- if gt (len $scaledObjectName) $maxScaledObjectNameLength }}
-  {{- fail (printf "KEDA ScaledObject name '%s' must be no more than %d characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'." $scaledObjectName $maxScaledObjectNameLength) }}
+  {{- fail (printf "KEDA ScaledObject name '%s' must be no more than %d characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>'. Set 'keda.scaledObjectName' on component '%s' to override it." $scaledObjectName $maxScaledObjectNameLength $componentName) }}
 {{- end }}
 
 ---
@@ -54,7 +54,7 @@ spec:
     - type: aws-sqs-queue
       {{ if not (eq ($trigger.identityOwner | default "operator") "operator") -}}
       authenticationRef:
-        name: {{ $componentName }}-auth-{{ $i }}
+        name: {{ $name }}-auth-{{ $i }}
       {{ end -}}
       metadata:
         activationQueueLength: {{ $trigger.activationQueueLength | default "0" | quote }}
@@ -108,6 +108,68 @@ spec:
         {{- end }}
         {{- if $trigger.queryParameters }}
         queryParameters: {{ $trigger.queryParameters | quote }}
+        {{- end }}
+
+    {{- else if eq $trigger.type "postgresql" }}
+      {{- if not $trigger.query }}
+        {{- fail (printf "PostgreSQL trigger for '%s' is missing required field 'query'." $componentName) }}
+      {{- end }}
+      {{- if not $trigger.targetQueryValue }}
+        {{- fail (printf "PostgreSQL trigger for '%s' is missing required field 'targetQueryValue'." $componentName) }}
+      {{- end }}
+      {{- $modes := list }}
+      {{- if $trigger.connectionFromEnv }}{{- $modes = append $modes "connectionFromEnv" }}{{- end }}
+      {{- if $trigger.connectionFromSecret }}{{- $modes = append $modes "connectionFromSecret" }}{{- end }}
+      {{- if $trigger.host }}{{- $modes = append $modes "host" }}{{- end }}
+      {{- if ne (len $modes) 1 }}
+        {{- fail (printf "PostgreSQL trigger for '%s' must set exactly one of 'connectionFromEnv', 'connectionFromSecret' or 'host' (got: %s)." $componentName (ternary "none" (join ", " $modes) (eq (len $modes) 0))) }}
+      {{- end }}
+      {{- if $trigger.host }}
+        {{- $passwordModes := list }}
+        {{- if $trigger.passwordFromEnv }}{{- $passwordModes = append $passwordModes "passwordFromEnv" }}{{- end }}
+        {{- if $trigger.passwordFromSecret }}{{- $passwordModes = append $passwordModes "passwordFromSecret" }}{{- end }}
+        {{- if ne (len $passwordModes) 1 }}
+          {{- fail (printf "PostgreSQL trigger for '%s' uses discrete connection fields and must set exactly one of 'passwordFromEnv' or 'passwordFromSecret'." $componentName) }}
+        {{- end }}
+        {{- /* KEDA's postgresql scaler rejects a ScaledObject with "no sslmode given" when the
+               connection is assembled from discrete fields, so sslmode is required here too. */}}
+        {{- range $required := list "port" "userName" "dbName" "sslmode" }}
+          {{- if not (index $trigger $required) }}
+            {{- fail (printf "PostgreSQL trigger for '%s' uses discrete connection fields and is missing '%s'." $componentName $required) }}
+          {{- end }}
+        {{- end }}
+      {{- else }}
+        {{- /* The discrete fields are only rendered in host mode; setting them alongside a
+               connection string would drop them silently. */}}
+        {{- $strayFields := list }}
+        {{- range $field := list "port" "userName" "dbName" "sslmode" "passwordFromEnv" "passwordFromSecret" }}
+          {{- if index $trigger $field }}{{- $strayFields = append $strayFields $field }}{{- end }}
+        {{- end }}
+        {{- if $strayFields }}
+          {{- fail (printf "PostgreSQL trigger for '%s' uses '%s' and must not set '%s': those fields only apply alongside 'host'." $componentName (first $modes) (join "', '" $strayFields)) }}
+        {{- end }}
+      {{- end }}
+    - type: postgresql
+      {{- if or $trigger.connectionFromSecret $trigger.passwordFromSecret }}
+      authenticationRef:
+        name: {{ $name }}-auth-{{ $i }}
+      {{- end }}
+      metadata:
+        query: {{ $trigger.query | quote }}
+        targetQueryValue: {{ $trigger.targetQueryValue | quote }}
+        activationTargetQueryValue: {{ $trigger.activationTargetQueryValue | default 0 | quote }}
+        {{- if $trigger.connectionFromEnv }}
+        connectionFromEnv: {{ $trigger.connectionFromEnv | quote }}
+        {{- end }}
+        {{- if $trigger.host }}
+        host: {{ $trigger.host | quote }}
+        port: {{ $trigger.port | quote }}
+        userName: {{ $trigger.userName | quote }}
+        dbName: {{ $trigger.dbName | quote }}
+        sslmode: {{ $trigger.sslmode | quote }}
+        {{- if $trigger.passwordFromEnv }}
+        passwordFromEnv: {{ $trigger.passwordFromEnv | quote }}
+        {{- end }}
         {{- end }}
 
     {{- else }}
