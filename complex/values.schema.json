@@ -188,6 +188,87 @@
         }
       ]
     },
+    "kedaSecretKeyRef": {
+      "type": "object",
+      "required": [
+        "name",
+        "key"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of an existing Secret in the release namespace"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key within that Secret"
+        }
+      },
+      "additionalProperties": false
+    },
+    "kedaTriggerPostgreSQL": {
+      "type": "object",
+      "required": [
+        "query",
+        "targetQueryValue"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "postgresql"
+        },
+        "query": {
+          "type": "string",
+          "description": "SQL query returning a single numeric value used as the scaling metric. Passed to KEDA verbatim; the chart does not inspect it. When comparing against 'timestamp without time zone' columns, avoid a bare now(): it returns a timestamptz, so Postgres reinterprets the column in the session's TimeZone and the comparison silently skews on a non-UTC session. Use (now() AT TIME ZONE 'UTC') when the column stores UTC wall-clock values."
+        },
+        "targetQueryValue": {
+          "type": ["string", "number"],
+          "description": "Target value per replica for the HPA"
+        },
+        "activationTargetQueryValue": {
+          "type": ["string", "number"],
+          "default": 0,
+          "description": "Query value above which KEDA activates the workload (scales from zero)"
+        },
+        "connectionFromEnv": {
+          "type": "string",
+          "description": "Name of an env var on the scaled workload holding a libpq connection string. Mutually exclusive with 'connectionFromSecret' and 'host'."
+        },
+        "connectionFromSecret": {
+          "$ref": "#/definitions/kedaSecretKeyRef",
+          "description": "Secret holding a libpq connection string, rendered as a TriggerAuthentication 'connection' parameter. Mutually exclusive with 'connectionFromEnv' and 'host'."
+        },
+        "host": {
+          "type": "string",
+          "description": "Database host. When set, 'port', 'userName', 'dbName', 'sslmode' and one of 'passwordFromEnv'/'passwordFromSecret' are required. Mutually exclusive with 'connectionFromEnv' and 'connectionFromSecret'."
+        },
+        "port": {
+          "type": ["string", "number"],
+          "description": "Database port. Only valid alongside 'host'."
+        },
+        "userName": {
+          "type": "string",
+          "description": "Database user. Only valid alongside 'host'."
+        },
+        "dbName": {
+          "type": "string",
+          "description": "Database name. Only valid alongside 'host'."
+        },
+        "sslmode": {
+          "type": "string",
+          "description": "libpq sslmode (e.g. disable, require, verify-full). Required alongside 'host': KEDA rejects a discrete-field connection with 'no sslmode given'. Only valid alongside 'host'."
+        },
+        "passwordFromEnv": {
+          "type": "string",
+          "description": "Name of an env var on the scaled workload holding the password. Only valid alongside 'host'."
+        },
+        "passwordFromSecret": {
+          "$ref": "#/definitions/kedaSecretKeyRef",
+          "description": "Secret holding the password, rendered as a TriggerAuthentication 'password' parameter. Only valid alongside 'host'."
+        }
+      },
+      "additionalProperties": false
+    },
     "livenessProbe": {
       "description": "Periodic probe of container liveness. Container will be restarted if the probe fails. Cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
       "type": ["object", "null"],
@@ -3431,6 +3512,11 @@
                 "minimum": 1,
                 "default": 30
               },
+              "scaledObjectName": {
+                "type": "string",
+                "maxLength": 54,
+                "description": "Overrides the generated ScaledObject name (default '<release>-<component>-scaler'). Used verbatim. Capped at 54 characters because KEDA generates an HPA named 'keda-hpa-<scaledobject-name>' and Kubernetes object names are limited to 63."
+              },
               "triggers": {
                 "type": "array",
                 "items": {
@@ -3446,6 +3532,9 @@
                     },
                     {
                       "$ref": "#/definitions/kedaTriggerPrometheus"
+                    },
+                    {
+                      "$ref": "#/definitions/kedaTriggerPostgreSQL"
                     }
                   ]
                 },

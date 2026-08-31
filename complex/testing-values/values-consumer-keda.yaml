@@ -14,6 +14,7 @@ components:
     envs:
       values:
         SQS_QUEUE: https://sqs.us-east-1.amazonaws.com/123456789012/test-queue
+        POSTGRES_CONNECTION_STRING: postgresql://user:pass@postgres:5432/app
     keda:
       minReplicaCount: 1
       maxReplicaCount: 10
@@ -51,3 +52,45 @@ components:
           customHeaders: "X-Custom-Header:value1,X-Another-Header:value2"
           namespace: "monitoring"
           queryParameters: "timeout=30s"
+        - type: postgresql
+          connectionFromEnv: POSTGRES_CONNECTION_STRING
+          query: "SELECT count(*) FROM tasks WHERE state = 'pending'"
+          targetQueryValue: "1"
+          activationTargetQueryValue: "0"
+
+  consumer-pg-secret:
+    type: consumer
+    command:
+      - bin/consume
+    keda:
+      scaledObjectName: pg-secret-scaler
+      minReplicaCount: 0
+      maxReplicaCount: 1
+      triggers:
+        - type: postgresql
+          connectionFromSecret:
+            name: app-db
+            key: PG_CONNECTION
+          query: "SELECT count(*) FROM jobs WHERE done = false"
+          targetQueryValue: "5"
+
+  consumer-pg-fields:
+    type: consumer
+    command:
+      - bin/consume
+    envs:
+      values:
+        POSTGRES_PASSWORD: placeholder
+    keda:
+      minReplicaCount: 0
+      maxReplicaCount: 1
+      triggers:
+        - type: postgresql
+          host: postgres.example.com
+          port: "5432"
+          userName: keda
+          dbName: app
+          sslmode: require
+          passwordFromEnv: POSTGRES_PASSWORD
+          query: "SELECT count(*) FROM jobs WHERE done = false"
+          targetQueryValue: "5"
