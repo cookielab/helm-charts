@@ -161,9 +161,11 @@ components:
 ```
 
 **Reference formats:**
-- `global:<name>` - Global middleware (e.g., `global:security-headers`)
-- `<name>` - Component middleware (e.g., `strip-prefix`)
-- `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`)
+- `global:<name>` - Global middleware (e.g., `global:security-headers`), resolved to the `<release>-<name>` Middleware the chart renders
+- `<name>` - Component middleware (e.g., `strip-prefix`), resolved to `<release>-<component>-<name>`; a name that matches no middleware defined in the chart is taken as an existing Middleware resource called `<name>` in the release namespace
+- `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`), passed through unchanged
+
+The chart translates the first two forms to the Traefik kubernetescrd address `<namespace>-<Middleware name>@kubernetescrd`.
 
 ## Init Containers
 
