@@ -2829,13 +2829,14 @@
           },
           "apiVersion": {
             "type": "string",
-            "description": "Secret resource apiVersion to render. Defaults to secrets.hashicorp.com/v1beta1 for VaultStaticSecret, or external-secrets.io/v1 for ExternalSecret."
+            "description": "Secret resource apiVersion to render. Defaults to secrets.hashicorp.com/v1beta1 for VaultStaticSecret, external-secrets.io/v1 for ExternalSecret, or secrets.infisical.com/v1alpha1 for InfisicalSecret."
           },
           "kind": {
             "type": "string",
-            "description": "Secret resource kind to render.",
+            "description": "Secret resource kind to render: HashiCorp Vault Secrets Operator VaultStaticSecret, External Secrets Operator ExternalSecret, or Infisical Kubernetes operator InfisicalSecret.",
             "enum": [
               "ExternalSecret",
+              "InfisicalSecret",
               "VaultStaticSecret"
             ],
             "default": "VaultStaticSecret"

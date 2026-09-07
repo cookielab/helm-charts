@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.10.0](https://img.shields.io/badge/Version-1.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.12.0](https://img.shields.io/badge/Version-1.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -161,9 +161,11 @@ components:
 ```
 
 **Reference formats:**
-- `global:<name>` - Global middleware (e.g., `global:security-headers`)
-- `<name>` - Component middleware (e.g., `strip-prefix`)
-- `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`)
+- `global:<name>` - Global middleware (e.g., `global:security-headers`), resolved to the `<release>-<name>` Middleware the chart renders
+- `<name>` - Component middleware (e.g., `strip-prefix`), resolved to `<release>-<component>-<name>`; a name that matches no middleware defined in the chart is taken as an existing Middleware resource called `<name>` in the release namespace
+- `<name>@<provider>` - External reference (e.g., `auth@file`, `other-middleware@kubernetescrd`), passed through unchanged
+
+The chart translates the first two forms to the Traefik kubernetescrd address `<namespace>-<Middleware name>@kubernetescrd`.
 
 ## Init Containers
 
@@ -297,7 +299,7 @@ components:
 
 ### External Secrets
 
-External secret resources can be declared under `externalSecrets`. Each entry renders a HashiCorp `VaultStaticSecret` by default, or an External Secrets Operator `ExternalSecret` when `kind: ExternalSecret` is set. The raw `spec` passes provider-specific and newer CRD fields through without chart changes. Helm templating is not applied inside `spec`, which keeps operator template expressions such as `{{ .password }}` intact.
+External secret resources can be declared under `externalSecrets`. Each entry renders a HashiCorp `VaultStaticSecret` by default, an External Secrets Operator `ExternalSecret` when `kind: ExternalSecret` is set, or an Infisical Kubernetes operator `InfisicalSecret` when `kind: InfisicalSecret` is set. The raw `spec` passes provider-specific and newer CRD fields through without chart changes. Helm templating is not applied inside `spec`, which keeps operator template expressions such as `{{ .password }}` intact.
 
 ```yaml
 global:
@@ -351,6 +353,34 @@ externalSecrets:
       type: kv-v2
       vaultAuthRef: vault-default-auth
 ```
+
+Infisical Kubernetes operator example (Kubernetes Auth, so no Infisical credential is stored in the cluster; the referenced service account needs the `system:auth-delegator` ClusterRole when the machine identity has no reviewer token):
+
+```yaml
+externalSecrets:
+  app-infisical-envs:
+    kind: InfisicalSecret
+    spec:
+      syncConfig:
+        resyncInterval: 60s
+      authentication:
+        kubernetesAuth:
+          identityId: 00000000-0000-0000-0000-000000000000
+          autoCreateServiceAccountToken: true
+          serviceAccountRef:
+            name: app-infisical
+            namespace: dev
+          secretsScope:
+            projectSlug: app-slug
+            envSlug: dev
+            secretsPath: /
+      managedKubeSecretReferences:
+        - secretName: app-infisical-envs
+          secretNamespace: dev
+          creationPolicy: Owner
+```
+
+Add `secrets.infisical.com/auto-reload: "true"` to `global.metadata.annotations` if the operator should roll the Deployments that consume the managed Secret whenever it changes.
 
 For review environments where the remote secret path may not exist, disable the external secret resource in that environment and keep the pod reference optional:
 
@@ -636,6 +666,7 @@ The following complete configuration examples are available in the `testing-valu
 - [`values-minimal.yaml`](testing-values/values-minimal.yaml) - Basic HTTP service
 - [`values-configmap.yaml`](testing-values/values-configmap.yaml) - ConfigMap integration
 - [`values-external-secret.yaml`](testing-values/values-external-secret.yaml) - ExternalSecret integration
+- [`values-infisical-secret.yaml`](testing-values/values-infisical-secret.yaml) - Infisical InfisicalSecret integration
 - [`values-volume-mounts.yaml`](testing-values/values-volume-mounts.yaml) - Volume mount examples
 - [`values-pvc.yaml`](testing-values/values-pvc.yaml) - PersistentVolumeClaim examples
 - [`values-pvc-efs-shared.yaml`](testing-values/values-pvc-efs-shared.yaml) - Shared storage with existing PVCs

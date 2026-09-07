@@ -101,6 +101,24 @@ tests:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
           value: default-test-security-headers@kubernetescrd
 
+  - it: ingress treats a bare ref without a chart-defined middleware as an existing Middleware in the namespace
+    templates:
+      - templates/ingress.yaml
+    set:
+      components.api.ingress.className: traefik
+      components.api.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              servicePort: 3000
+      components.api.ingress.traefikMiddlewareRefs:
+        - shared-compress
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: default-shared-compress@kubernetescrd
+
   - it: ingress passes external @-references through unchanged
     templates:
       - templates/ingress.yaml

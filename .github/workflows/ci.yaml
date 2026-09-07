@@ -86,6 +86,7 @@ jobs:
           helm lint complex -f complex/testing-values/values-host-network.yaml
           helm lint complex -f complex/testing-values/values-node-name.yaml
           helm lint complex -f complex/testing-values/values-external-secret.yaml
+          helm lint complex -f complex/testing-values/values-infisical-secret.yaml
 
   template-test:
     runs-on: ubuntu-latest
@@ -140,6 +141,7 @@ jobs:
           helm template test ./complex --debug -f complex/testing-values/values-volume-mounts.yaml
           helm template test ./complex --debug -f complex/testing-values/values-tolerations.yaml
           helm template test ./complex --debug -f complex/testing-values/values-external-secret.yaml
+          helm template test ./complex --debug -f complex/testing-values/values-infisical-secret.yaml
 
   unit-test:
     runs-on: ubuntu-latest
