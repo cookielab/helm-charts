@@ -150,7 +150,7 @@ tests:
           value: pod
       - equal:
           path: spec.triggers[0].authenticationRef.name
-          value: consumer-foo-auth-0
+          value: test-consumer-foo-auth-0
 
   - it: SQS trigger falls back to global awsRegion
     set:

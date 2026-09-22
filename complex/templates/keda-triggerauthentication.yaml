@@ -3,7 +3,9 @@
     {{- $name := include "component.name" (dict "name" $componentName "Release" $.Release) }}
     {{- $kubeLabels := (merge (dict "name" $.Release.Name "instance" (printf "%s-%d" $name $.Release.Revision) "component" $componentName) $.Values.global.metadata) }}
     {{- range $i, $trigger := $component.keda.triggers }}
-      {{- if and (eq $trigger.type "aws-sqs-queue") (ne (default "operator" $trigger.identityOwner) "operator") (ne $trigger.triggerAuthEnabled false) }}
+      {{- $sqsPodIdentity := and (eq $trigger.type "aws-sqs-queue") (ne (default "operator" $trigger.identityOwner) "operator") (ne $trigger.triggerAuthEnabled false) }}
+      {{- $postgresqlSecret := and (eq $trigger.type "postgresql") (or $trigger.connectionFromSecret $trigger.passwordFromSecret) }}
+      {{- if or $sqsPodIdentity $postgresqlSecret }}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
@@ -12,8 +14,22 @@ metadata:
   labels:
     {{ include "cookielab.kubernetes.labels" $kubeLabels | indent 4 | trim }}
 spec:
+        {{- if $sqsPodIdentity }}
   podIdentity:
     provider: aws
+        {{- else }}
+  secretTargetRef:
+          {{- with $trigger.connectionFromSecret }}
+    - parameter: connection
+      name: {{ .name | quote }}
+      key: {{ .key | quote }}
+          {{- end }}
+          {{- with $trigger.passwordFromSecret }}
+    - parameter: password
+      name: {{ .name | quote }}
+      key: {{ .key | quote }}
+          {{- end }}
+        {{- end }}
       {{- end }}
     {{- end }}
   {{- end }}

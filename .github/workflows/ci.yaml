@@ -75,6 +75,7 @@ jobs:
           helm lint complex -f complex/testing-values/values-vpa.yaml
           helm lint complex -f complex/testing-values/values-alerts.yaml
           helm lint complex -f complex/testing-values/values-consumer.yaml
+          helm lint complex -f complex/testing-values/values-consumer-keda.yaml
           helm lint complex -f complex/testing-values/values-cronjob.yaml
           helm lint complex -f complex/testing-values/values-ingress.yaml
           helm lint complex -f complex/testing-values/values-targetgroups.yaml

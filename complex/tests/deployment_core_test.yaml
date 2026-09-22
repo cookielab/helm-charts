@@ -14,6 +14,40 @@ tests:
           path: spec.replicas
           value: 5
 
+  - it: omits replicas when the component is KEDA-managed
+    documentSelector:
+      path: metadata.name
+      value: test-worker
+    set:
+      components.worker.type: consumer
+      components.worker.replicas: 3
+      components.worker.command:
+        - bin/consume
+      components.worker.keda.triggers:
+        - type: kafka
+          bootstrapServers: kafka:9092
+          topic: events
+          consumerGroup: event-consumers
+          lagThreshold: 5
+          awsRegion: eu-west-1
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: keeps replicas for a consumer without keda
+    documentSelector:
+      path: metadata.name
+      value: test-worker
+    set:
+      components.worker.type: consumer
+      components.worker.replicas: 3
+      components.worker.command:
+        - bin/consume
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
   - it: defaults progressDeadlineSeconds to 300
     asserts:
       - equal:
