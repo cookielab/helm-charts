@@ -52,3 +52,7 @@ and [publisher verification requirements](https://artifacthub.io/docs/topics/rep
 - **lib-gitlab** - GitLab integration library  
 - **lib-kubernetes** - Kubernetes utilities library
 - **lib-prometheus** - Prometheus monitoring library
+
+## License
+
+The charts and libraries in this repository use the [MIT license](LICENSE).
