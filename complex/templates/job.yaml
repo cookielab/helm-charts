@@ -17,7 +17,7 @@ metadata:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: {{ $component.weight | default "0" | quote }}
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
-    {{- with $.Values.global.metadata.annotations }}
+    {{- with mergeOverwrite (dict) ($.Values.global.metadata.annotations | default dict) ($component.annotations | default dict) }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -39,7 +39,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $.Values.global.metadata "kubeLabels" $kubeLabels "restartPolicy" "Never" "skipLifecycle" true "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "root" $) | indent 6 | trim }}
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "global" $.Values.global "nodeSelector" $component.nodeSelector "metadata" $.Values.global.metadata "kubeLabels" $kubeLabels "restartPolicy" "Never" "skipLifecycle" true "serviceAccountName" $component.serviceAccountName "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "podSecurityContext" $component.podSecurityContext "root" $) | indent 6 | trim }}
 
 {{ end -}}
 {{- end -}}

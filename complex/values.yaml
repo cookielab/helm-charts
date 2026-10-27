@@ -1,5 +1,7 @@
 global:
   metadata: {}
+  # -- Pod-level security defaults, merged with each component's podSecurityContext.
+  podSecurityContext: {}
   container:
     image:
       pullPolicy: IfNotPresent

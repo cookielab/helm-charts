@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.12.0](https://img.shields.io/badge/Version-1.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.14.0](https://img.shields.io/badge/Version-1.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -97,6 +97,48 @@ See `testing-values/values-ingress-only.yaml` for complete examples including:
 - OIDC/SSO integration
 - Multi-domain routing
 - Path-based routing patterns
+
+## Service ports and workload settings
+
+`components.<name>.ports[].port` remains the container port. HTTP components can set
+`servicePort` to expose a different Service port, and `targetPort` to select a
+numeric or named container port. Both default to `port`, preserving existing
+values. Set ingress paths' `servicePort` to the exposed Service port when using an override.
+
+`global.podSecurityContext` provides Pod-level defaults for Deployments, consumers,
+CronJobs and pre-jobs. `components.<name>.podSecurityContext` merges over those
+defaults, with each component field replacing the corresponding global field,
+including nested objects such as `seccompProfile`. This is separate from the
+existing `components.<name>.securityContext`, which still configures only the
+application container.
+
+Use `components.<name>.annotations` for annotations on that component's Deployment,
+Job or CronJob metadata. They merge over `global.metadata.annotations` at the
+workload root only. They do not propagate to Pod templates, inner CronJob Jobs,
+Services or other components. Global annotations keep their existing scope.
+
+For example, expose a non-root worker on Service port 443, let it read a group-owned
+Secret volume, and opt only this Deployment into Infisical credential reloads:
+
+```yaml
+components:
+  worker:
+    type: http-internal
+    replicas: 1
+    ports:
+      - name: runner
+        port: 3443
+        servicePort: 443
+        targetPort: runner
+    podSecurityContext:
+      fsGroup: 1000
+    securityContext:
+      runAsUser: 1000
+      runAsNonRoot: true
+    annotations:
+      secrets.infisical.com/auto-reload: "true"
+    # Configure the worker's image, probes and Secret imports as usual.
+```
 
 ## Traefik Middlewares
 
@@ -380,7 +422,7 @@ externalSecrets:
           creationPolicy: Owner
 ```
 
-Add `secrets.infisical.com/auto-reload: "true"` to `global.metadata.annotations` if the operator should roll the Deployments that consume the managed Secret whenever it changes.
+Add `secrets.infisical.com/auto-reload: "true"` to the consuming component's `annotations` to opt its Deployment into reloads when the managed Secret changes. `global.metadata.annotations` also remains available when all workloads should carry the annotation.
 
 For review environments where the remote secret path may not exist, disable the external secret resource in that environment and keep the pod reference optional:
 
@@ -702,6 +744,7 @@ Kubernetes: `>= 1.25.0-0 < 2.0.0-0`
 | global.container.resources.requests.memory | string | `"256M"` |  |
 | global.metadata | object | `{}` |  |
 | global.nodeSelector | object | `{}` |  |
+| global.podSecurityContext | object | `{}` | Pod-level security defaults, merged with each component's podSecurityContext. |
 | global.rollingUpdate.maxSurge | string | `"100%"` |  |
 | global.rollingUpdate.maxUnavailable | string | `"0%"` |  |
 | global.service.type | string | `"ClusterIP"` |  |
