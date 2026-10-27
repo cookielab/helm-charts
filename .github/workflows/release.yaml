@@ -46,6 +46,9 @@ jobs:
           echo "Current content in public/:"
           ls -la public/
       
+      - name: Copy Artifact Hub repository metadata
+        run: cp artifacthub-repo.yml public/artifacthub-repo.yml
+
       - name: Package GitHub charts
         run: |
           echo "Packaging charts from GitHub repository..."

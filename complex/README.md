@@ -2,9 +2,11 @@
 
 # complex
 
-![Version: 1.14.1](https://img.shields.io/badge/Version-1.14.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.14.2](https://img.shields.io/badge/Version-1.14.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
+
+**Homepage:** <https://github.com/cookielab/helm-charts/tree/main/complex>
 
 ## Features
 
@@ -620,10 +622,39 @@ See `testing-values/values-pvc.yaml` and `testing-values/values-pvc-efs-shared.y
 
 ## Installation
 
+Create `my-values.yaml` with an application image and at least one component.
+This example runs an internal HTTP service:
+
+```yaml
+global:
+  container:
+    image:
+      repository: nginx
+      tag: stable-alpine
+
+components:
+  web:
+    type: http-internal
+    replicas: 1
+    ports:
+      - name: http
+        port: 80
+    probes:
+      readinessProbe:
+        httpGet:
+          path: /
+          port: http
+```
+
 ```bash
 helm repo add cookielab https://helm.cookielab.dev
-helm install my-app cookielab/complex
+helm repo update cookielab
+helm install my-app cookielab/complex --values my-values.yaml
 ```
+
+Use your own image repository and tag when deploying your application. The chart
+requires both values and does not install with default values alone. The example
+above is also packaged as `examples/values-quickstart.yaml`.
 
 ## Usage Examples
 
@@ -716,6 +747,16 @@ The following complete configuration examples are available in the `testing-valu
 - [`values-cronjob.yaml`](testing-values/values-cronjob.yaml) - Scheduled jobs
 - [`values-hpa.yaml`](testing-values/values-hpa.yaml) - Auto-scaling configuration
 - [`values-ingress-only.yaml`](testing-values/values-ingress-only.yaml) - Standalone ingress configurations
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Cookielab |  | <https://github.com/cookielab> |
+
+## Source Code
+
+* <https://github.com/cookielab/helm-charts>
 
 ## Requirements
 

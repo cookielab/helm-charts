@@ -2,8 +2,27 @@ apiVersion: v2
 name: complex
 description: For deploying applications with consumers and cronjobs
 type: application
-version: 1.14.1
+version: 1.14.2
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
+home: https://github.com/cookielab/helm-charts/tree/main/complex
+sources:
+  - https://github.com/cookielab/helm-charts
+maintainers:
+  - name: Cookielab
+    url: https://github.com/cookielab
+keywords:
+  - application
+  - deployment
+  - workers
+  - cronjob
+annotations:
+  artifacthub.io/category: integration-delivery
+  artifacthub.io/links: |
+    - name: support
+      url: https://github.com/cookielab/helm-charts/issues
+  artifacthub.io/changes: |
+    - kind: added
+      description: Add Artifact Hub package metadata and a complete installation example.
 
 dependencies:
   - name: lib-gitlab

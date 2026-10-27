@@ -1,0 +1,18 @@
+global:
+  container:
+    image:
+      repository: nginx
+      tag: stable-alpine
+
+components:
+  web:
+    type: http-internal
+    replicas: 1
+    ports:
+      - name: http
+        port: 80
+    probes:
+      readinessProbe:
+        httpGet:
+          path: /
+          port: http
