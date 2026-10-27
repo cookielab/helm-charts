@@ -16,6 +16,7 @@ keywords:
   - workers
   - cronjob
 annotations:
+  artifacthub.io/license: MIT
   artifacthub.io/category: integration-delivery
   artifacthub.io/links: |
     - name: support
@@ -23,6 +24,8 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: Add Artifact Hub package metadata and a complete installation example.
+    - kind: added
+      description: License the charts under MIT and include the license in the Complex package.
 
 dependencies:
   - name: lib-gitlab
