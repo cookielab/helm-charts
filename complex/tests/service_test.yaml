@@ -159,3 +159,55 @@ tests:
     asserts:
       - hasDocuments:
           count: 2
+
+  - it: overrides the Service port while keeping the container port as the default target
+    set:
+      components.api.ports:
+        - name: runner
+          port: 3443
+          servicePort: 443
+    asserts:
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: runner
+            port: 443
+            targetPort: 3443
+            protocol: TCP
+
+  - it: supports a named targetPort independently of the Service port
+    set:
+      components.api.ports:
+        - name: runner
+          port: 3443
+          servicePort: 443
+          targetPort: runner
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 443
+      - equal:
+          path: spec.ports[0].targetPort
+          value: runner
+
+  - it: supports a numeric targetPort and leaves other entries unchanged
+    set:
+      components.api.ports:
+        - name: http
+          port: 8080
+          targetPort: 8081
+        - name: metrics
+          port: 9090
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 8081
+      - equal:
+          path: spec.ports[1].port
+          value: 9090
+      - equal:
+          path: spec.ports[1].targetPort
+          value: 9090

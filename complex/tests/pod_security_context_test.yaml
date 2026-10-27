@@ -1,0 +1,94 @@
+suite: Pod security contexts across workload kinds
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: omits the Pod securityContext when no settings are provided
+    templates:
+      - templates/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext
+
+  - it: merges global defaults with component overrides and keeps container settings separate
+    templates:
+      - templates/deployment.yaml
+    set:
+      global.podSecurityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+      components.api.podSecurityContext.fsGroup: 2000
+      components.api.securityContext.runAsUser: 3000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext
+          value:
+            fsGroup: 2000
+            runAsNonRoot: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            runAsUser: 3000
+
+  - it: replaces component security fields without mutating global defaults
+    templates:
+      - templates/deployment.yaml
+    set:
+      global.podSecurityContext.seccompProfile:
+        type: Localhost
+        localhostProfile: profiles/global.json
+      components.api.podSecurityContext.seccompProfile:
+        type: RuntimeDefault
+      components.worker:
+        type: consumer
+        replicas: 1
+        command: [bin/consume]
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile
+          value:
+            type: RuntimeDefault
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile
+          value:
+            type: Localhost
+            localhostProfile: profiles/global.json
+        documentIndex: 1
+
+  - it: propagates Pod securityContext to a CronJob
+    templates:
+      - templates/cronJob.yaml
+    set:
+      global.podSecurityContext.runAsNonRoot: true
+      components.cron:
+        type: cronjob
+        schedule: "*/5 * * * *"
+        command: [bin/task]
+        podSecurityContext:
+          fsGroup: 1000
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext
+          value:
+            fsGroup: 1000
+            runAsNonRoot: true
+
+  - it: propagates Pod securityContext to a pre-job
+    templates:
+      - templates/job.yaml
+    set:
+      global.podSecurityContext.fsGroup: 1000
+      components.migrate:
+        type: pre-job
+        command: [bin/migrate]
+        podSecurityContext:
+          fsGroup: 2000
+          runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext
+          value:
+            fsGroup: 2000
+            runAsNonRoot: true

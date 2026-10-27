@@ -1,0 +1,106 @@
+suite: Component workload annotations
+release:
+  name: test
+values:
+  - ../testing-values/values-minimal.yaml
+tests:
+  - it: scopes component annotations to its Deployment metadata
+    templates:
+      - templates/deployment.yaml
+    set:
+      components.api.annotations:
+        secrets.infisical.com/auto-reload: "true"
+      components.worker:
+        type: consumer
+        replicas: 1
+        command: [bin/consume]
+    asserts:
+      - equal:
+          path: metadata.annotations["secrets.infisical.com/auto-reload"]
+          value: "true"
+        documentIndex: 0
+      - notExists:
+          path: spec.template.metadata.annotations["secrets.infisical.com/auto-reload"]
+        documentIndex: 0
+      - notExists:
+          path: metadata.annotations["secrets.infisical.com/auto-reload"]
+        documentIndex: 1
+
+  - it: keeps component annotations off its Service
+    templates:
+      - templates/service.yaml
+    set:
+      components.api.annotations:
+        secrets.infisical.com/auto-reload: "true"
+    asserts:
+      - notExists:
+          path: metadata.annotations["secrets.infisical.com/auto-reload"]
+
+  - it: overrides global workload annotations without changing other components or Pod annotations
+    templates:
+      - templates/deployment.yaml
+    set:
+      global.metadata.annotations:
+        example.com/shared: shared
+        example.com/owner: global
+      components.api.annotations:
+        example.com/owner: api
+      components.worker:
+        type: consumer
+        replicas: 1
+        command: [bin/consume]
+    asserts:
+      - equal:
+          path: metadata.annotations["example.com/shared"]
+          value: shared
+        documentIndex: 0
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: api
+        documentIndex: 0
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: global
+        documentIndex: 1
+      - equal:
+          path: spec.template.metadata.annotations["example.com/owner"]
+          value: global
+        documentIndex: 0
+
+  - it: adds annotations to pre-job metadata while retaining Helm hooks
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate:
+        type: pre-job
+        command: [bin/migrate]
+        annotations:
+          example.com/owner: migrations
+    asserts:
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: migrations
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+      - notExists:
+          path: spec.template.metadata.annotations["example.com/owner"]
+
+  - it: adds annotations only to the CronJob metadata
+    templates:
+      - templates/cronJob.yaml
+    set:
+      components.cron:
+        type: cronjob
+        schedule: "*/5 * * * *"
+        command: [bin/task]
+        annotations:
+          example.com/owner: cron
+    asserts:
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: cron
+      - notExists:
+          path: spec.jobTemplate.metadata.annotations["example.com/owner"]
+      - notExists:
+          path: spec.jobTemplate.spec.template.metadata.annotations["example.com/owner"]

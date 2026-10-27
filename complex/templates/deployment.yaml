@@ -14,8 +14,8 @@ metadata:
     {{- end }}
   annotations:
     {{ include "cookielab.kubernetes.annotations" (dict "defaultContainer" "application") | indent 4 | trim }}
-    {{- if $.Values.global.metadata.annotations }}
-    {{ $.Values.global.metadata.annotations | toYaml | nindent 4 }}
+    {{- with mergeOverwrite (dict) ($.Values.global.metadata.annotations | default dict) ($component.annotations | default dict) }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not (or (and $component.hpa $component.hpa.enabled) (hasKey $component "keda")) }}
@@ -50,6 +50,6 @@ spec:
         {{ $.Values.global.metadata.annotations | toYaml | nindent 8 }}
         {{- end }}
     spec:
-      {{ include "pod.spec" (dict "containers" (dict "application" $component) "initContainers" $component.initContainers "global" $.Values.global "metadata" $.Values.global.metadata "nodeSelector" $component.nodeSelector "kubeLabels" $kubeLabels "enableServiceLinks" $component.enableServiceLinks "serviceAccountName" $component.serviceAccountName "tolerations" $component.tolerations "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "root" $) | indent 6 | trim }}
+      {{ include "pod.spec" (dict "containers" (dict "application" $component) "initContainers" $component.initContainers "global" $.Values.global "metadata" $.Values.global.metadata "nodeSelector" $component.nodeSelector "kubeLabels" $kubeLabels "enableServiceLinks" $component.enableServiceLinks "serviceAccountName" $component.serviceAccountName "tolerations" $component.tolerations "imagePullSecrets" $component.imagePullSecrets "volumeMounts" $component.volumeMounts "volumes" $component.volumes "persistentVolumeClaim" $component.persistentVolumeClaim "componentName" (include "component.name" (dict "name" $componentName "Release" $.Release)) "nodeName" $component.nodeName "hostNetwork" $component.hostNetwork "dnsPolicy" $component.dnsPolicy "podSecurityContext" $component.podSecurityContext "root" $) | indent 6 | trim }}
 {{ end -}}
 {{- end -}}

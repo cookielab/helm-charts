@@ -13,8 +13,8 @@ spec:
   type: {{ dig "service" "type" $.Values.global.service.type $component }}
   ports:
     {{- range $port := $component.ports }}
-    - port: {{ $port.port }}
-      targetPort: {{ $port.port }}
+    - port: {{ default $port.port $port.servicePort }}
+      targetPort: {{ default $port.port $port.targetPort | toYaml }}
       protocol: TCP
       {{- if $port.name }}
       name: {{ $port.name }}

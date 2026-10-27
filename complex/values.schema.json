@@ -1318,6 +1318,44 @@
       ],
       "additionalProperties": false
     },
+    "podSecurityContext": {
+      "description": "Pod-level Kubernetes security context, separate from the container securityContext. Component fields override global.podSecurityContext.",
+      "type": "object",
+      "properties": {
+        "fsGroup": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fsGroupChangePolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "OnRootMismatch"
+          ]
+        },
+        "runAsUser": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runAsNonRoot": {
+          "type": "boolean"
+        },
+        "supplementalGroups": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "seccompProfile": {
+          "$ref": "#/definitions/securityContext/properties/seccompProfile"
+        }
+      }
+    },
     "pod": {
       "type": "object",
       "properties": {
@@ -2748,6 +2786,9 @@
         "metadata": {
           "$ref": "#/definitions/metadata"
         },
+        "podSecurityContext": {
+          "$ref": "#/definitions/podSecurityContext"
+        },
         "prometheus": {
           "type": "object",
           "properties": {
@@ -3334,8 +3375,22 @@
                   "type": "string"
                 },
                 "port": {
+                  "description": "Container port. Also used as the Service port and targetPort unless overridden.",
                   "type": "integer",
                   "format": "int32"
+                },
+                "servicePort": {
+                  "description": "Service port for this entry. Defaults to port; does not change the container port.",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                "targetPort": {
+                  "description": "Service target as a port number or named container port. Defaults to port.",
+                  "anyOf": [
+                    {"type": "integer", "minimum": 1, "maximum": 65535},
+                    {"type": "string", "minLength": 1}
+                  ]
                 }
               },
               "required": [
@@ -3346,6 +3401,16 @@
           },
           "securityContext": {
             "$ref": "#/definitions/securityContext"
+          },
+          "podSecurityContext": {
+            "$ref": "#/definitions/podSecurityContext"
+          },
+          "annotations": {
+            "description": "Annotations on this component's Deployment, Job or CronJob metadata. Override global.metadata.annotations at that workload only; do not propagate to Pod templates or other resources.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "lifecycle": {
             "description": "Container lifecycle hooks. When unset, a default preStop sleep is applied to long-running pods (deployments and consumers); cronjobs and pre-jobs always skip the default. Set to {} to disable, or provide a full lifecycle object to override.",

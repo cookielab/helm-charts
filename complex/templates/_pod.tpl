@@ -1,6 +1,14 @@
 {{- define "pod.spec" -}}
 restartPolicy: {{ default "Always" .restartPolicy }}
 terminationGracePeriodSeconds: {{ default 120 .terminationGracePeriodSeconds }}
+{{- $podSecurityContext := deepCopy (.global.podSecurityContext | default dict) }}
+{{- range $key, $value := (.podSecurityContext | default dict) }}
+{{- $_ := set $podSecurityContext $key $value }}
+{{- end }}
+{{- with $podSecurityContext }}
+securityContext:
+{{ toYaml . | indent 2 }}
+{{- end }}
 {{- if .nodeName }}
 nodeName: {{ .nodeName }}
 {{- end }}
