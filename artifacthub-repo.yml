@@ -1,0 +1,4 @@
+# After registering https://helm.cookielab.dev in Artifact Hub, replace the empty
+# mapping below with repositoryID: <the repository ID from the control panel>.
+# The release workflow serves this file beside index.yaml for publisher verification.
+{}
