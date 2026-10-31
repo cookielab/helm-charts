@@ -189,3 +189,68 @@ tests:
       - equal:
           path: spec.jobTemplate.spec.template.metadata.annotations["ad.datadoghq.com/application.logs"]
           value: '[{"source":"python"}]'
+
+  - it: renders tolerations, initContainers and enableServiceLinks on the CronJob pod like on Deployment
+    templates:
+      - templates/cronJob.yaml
+    set:
+      components.cron.type: cronjob
+      components.cron.schedule: "0 * * * *"
+      components.cron.command:
+        - bin/task
+      components.cron.enableServiceLinks: true
+      components.cron.tolerations:
+        - key: feature
+          operator: Equal
+          value: import
+          effect: NoSchedule
+      components.cron.initContainers:
+        init:
+          command:
+            - bin/init
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.tolerations
+          value:
+            - key: feature
+              operator: Equal
+              value: import
+              effect: NoSchedule
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].name
+          value: init
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.enableServiceLinks
+          value: true
+
+  - it: renders tolerations, initContainers and enableServiceLinks on the pre-job pod like on Deployment
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.enableServiceLinks: true
+      components.migrate.tolerations:
+        - key: feature
+          operator: Equal
+          value: import
+          effect: NoSchedule
+      components.migrate.initContainers:
+        init:
+          command:
+            - bin/init
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: feature
+              operator: Equal
+              value: import
+              effect: NoSchedule
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: init
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: true
