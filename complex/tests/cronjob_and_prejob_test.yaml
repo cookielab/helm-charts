@@ -206,6 +206,9 @@ tests:
           effect: NoSchedule
       components.cron.initContainers:
         init:
+          image:
+            repository: busybox
+            tag: "1.36"
           command:
             - bin/init
     asserts:
@@ -238,6 +241,9 @@ tests:
           effect: NoSchedule
       components.migrate.initContainers:
         init:
+          image:
+            repository: busybox
+            tag: "1.36"
           command:
             - bin/init
     asserts:
