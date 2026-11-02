@@ -2,7 +2,7 @@ apiVersion: v2
 name: complex
 description: For deploying applications with consumers and cronjobs
 type: application
-version: 1.14.3
+version: 1.14.4
 kubeVersion: ">= 1.25.0-0 < 2.0.0-0"
 home: https://github.com/cookielab/helm-charts/tree/main/complex
 sources:
@@ -22,8 +22,8 @@ annotations:
     - name: support
       url: https://github.com/cookielab/helm-charts/issues
   artifacthub.io/changes: |
-    - kind: changed
-      description: Configure the Artifact Hub repository ID for publisher verification.
+    - kind: fixed
+      description: Render tolerations, initContainers and enableServiceLinks on CronJob and pre-job pods, as on Deployment.
 
 dependencies:
   - name: lib-gitlab
