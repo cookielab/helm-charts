@@ -11,6 +11,7 @@ components:
     type: pre-job
     command:
       - bin/migrations
+    activeDeadlineSeconds: 300
     envs:
       values:
         DATABASE_URL: "$(MIGRATOR_DATABASE_URL)"

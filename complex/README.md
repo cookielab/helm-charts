@@ -2,7 +2,7 @@
 
 # complex
 
-![Version: 1.14.4](https://img.shields.io/badge/Version-1.14.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.15.0](https://img.shields.io/badge/Version-1.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 For deploying applications, consumers and cronjobs
 
@@ -52,6 +52,19 @@ Scheduled tasks that run periodically.
 One-time jobs that run before the main application (e.g., migrations).
 
 **Creates**: Job
+
+Set `activeDeadlineSeconds` to give the Job a deadline. Kubernetes then terminates
+its pods and marks the Job failed when it is still active after that time, so a
+hung migration fails the release instead of blocking it. Without it the Job has
+no deadline.
+
+```yaml
+components:
+  migrate:
+    type: pre-job
+    command: ["bin/migrate"]
+    activeDeadlineSeconds: 300
+```
 
 ### 6. Ingress Components (`type: ingress`)
 Standalone ingress resources that route to external services without creating deployments.

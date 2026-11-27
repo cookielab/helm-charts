@@ -22,6 +22,9 @@ metadata:
     {{- end }}
 spec:
   backoffLimit: 0
+  {{- if not (kindIs "invalid" $component.activeDeadlineSeconds) }}
+  activeDeadlineSeconds: {{ $component.activeDeadlineSeconds }}
+  {{- end }}
   template:
     metadata:
       labels:

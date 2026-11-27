@@ -3032,6 +3032,12 @@
             "description": "Helm hook weight for pre-job components. Lower weights run first. Defaults to 0.",
             "type": "number"
           },
+          "activeDeadlineSeconds": {
+            "description": "Duration in seconds, relative to its start time, that the Job of a pre-job component may be active before Kubernetes terminates its pods and marks it failed. Unset means no deadline.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
           "hooks": {
             "description": "Helm hook events a pre-job component runs on. Defaults to both pre-install and pre-upgrade.",
             "type": "array",
