@@ -141,6 +141,41 @@ tests:
           path: spec.backoffLimit
           value: 0
 
+  - it: pre-job has no activeDeadlineSeconds when not set
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+    asserts:
+      - notExists:
+          path: spec.activeDeadlineSeconds
+
+  - it: honours pre-job activeDeadlineSeconds when set
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.activeDeadlineSeconds: 300
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 300
+
+  - it: rejects a pre-job activeDeadlineSeconds below 1
+    templates:
+      - templates/job.yaml
+    set:
+      components.migrate.type: pre-job
+      components.migrate.command:
+        - bin/migrate
+      components.migrate.activeDeadlineSeconds: 0
+    asserts:
+      - failedTemplate: {}
+
   - it: does not render Job for non-pre-job component types
     templates:
       - templates/job.yaml

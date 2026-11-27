@@ -53,6 +53,19 @@ One-time jobs that run before the main application (e.g., migrations).
 
 **Creates**: Job
 
+Set `activeDeadlineSeconds` to give the Job a deadline. Kubernetes then terminates
+its pods and marks the Job failed when it is still active after that time, so a
+hung migration fails the release instead of blocking it. Without it the Job has
+no deadline.
+
+```yaml
+components:
+  migrate:
+    type: pre-job
+    command: ["bin/migrate"]
+    activeDeadlineSeconds: 300
+```
+
 ### 6. Ingress Components (`type: ingress`)
 Standalone ingress resources that route to external services without creating deployments.
 
